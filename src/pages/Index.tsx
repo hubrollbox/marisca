@@ -1,23 +1,28 @@
 import { useState } from "react";
-import { ProductCard, Product } from "@/components/ui/product-card";
-import { CartFooter, CartItem } from "@/components/ui/cart-footer";
-import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { CartItem, CartFooter } from "@/components/ui/cart-footer";
+import { ProductCard } from "@/components/ui/product-card";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin } from "lucide-react";
-import { products } from "@/data/products";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import heroSeafood from "@/assets/hero-seafood.jpg";
+import { useProducts } from "@/hooks/use-products";
+import { useAuth } from "@/hooks/use-auth";
+import { Search, Fish, User, Loader2, MapPin } from "lucide-react";
+import heroImage from "@/assets/hero-seafood.jpg";
 
-const Index = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+export default function Index() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const { toast } = useToast();
+  const { data: products, isLoading } = useProducts();
+  const { user } = useAuth();
 
-  const filteredProducts = products.filter(product =>
+  const filteredProducts = products?.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) || [];
 
-  const handleAddToCart = (product: Product, quantity: number, state: "CRU" | "COZIDO") => {
+  const addToCart = (product: any, quantity: number, state: "CRU" | "COZIDO") => {
     const existingItemIndex = cartItems.findIndex(
       item => item.product.id === product.id && item.state === state
     );
@@ -55,27 +60,30 @@ const Index = () => {
     });
   };
 
-  const handleCheckout = () => {
-    toast({
-      title: "Checkout",
-      description: "Funcionalidade em desenvolvimento. Conecte ao Supabase para finalizar!",
-    });
+  const onCheckout = () => {
+    navigate("/checkout");
   };
 
   return (
     <div className="min-h-screen bg-gradient-sky">
       {/* Header */}
       <header className="bg-gradient-ocean text-white sticky top-0 z-40 shadow-ocean">
-        <div className="container mx-auto px-4 py-4">
+        <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold">MariscoFresh</h1>
-              <p className="text-white/80 text-sm">Marisco fresco ao domicílio</p>
+            <div className="flex items-center gap-2">
+              <Fish className="h-6 w-6" />
+              <div>
+                <h1 className="text-xl font-bold">MariscoFresh</h1>
+                <p className="text-white/80 text-xs">Marisco fresco ao domicílio</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-white/90">
-              <MapPin className="w-4 h-4" />
-              <span>Lisboa, Porto</span>
-            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => user ? navigate("/dashboard") : navigate("/auth")}
+            >
+              <User className="h-5 w-5" />
+            </Button>
           </div>
           
           <div className="relative">
@@ -93,25 +101,25 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative h-48 overflow-hidden">
         <img 
-          src={heroSeafood} 
+          src={heroImage} 
           alt="Marisco fresco"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
-          <h2 className="text-2xl font-bold text-foreground mb-2">
+          <h2 className="text-xl font-bold text-white mb-1">
             Marisco Fresco da Costa Portuguesa
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-white/80 text-sm">
             Entregue em casa em menos de 2 horas
           </p>
         </div>
       </section>
 
       {/* Products Grid */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-foreground">
+          <h2 className="text-lg font-semibold text-foreground">
             Produtos Disponíveis
           </h2>
           <span className="text-sm text-muted-foreground">
@@ -119,31 +127,36 @@ const Index = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-24">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={handleAddToCart}
-            />
-          ))}
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 gap-4 pb-24">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                {searchTerm ? "Nenhum produto encontrado" : "Nenhum produto disponível"}
+              </p>
+            </div>
+          ) : (
+            filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={addToCart}
+              />
+            ))
+          )}
         </div>
-
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Nenhum produto encontrado</p>
-          </div>
-        )}
       </main>
 
       <CartFooter
         items={cartItems}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
-        onCheckout={handleCheckout}
+        onCheckout={onCheckout}
       />
     </div>
   );
-};
-
-export default Index;
+}

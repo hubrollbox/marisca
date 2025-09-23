@@ -10,12 +10,15 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  image: string;
-  weight: string;
+  image?: string;
+  image_url?: string;
+  weight?: string;
   available: boolean;
   states: Array<"CRU" | "COZIDO">;
-  prepTime: string;
-  description: string;
+  prepTime?: string;
+  prep_time?: string;
+  description?: string;
+  stock?: number;
 }
 
 interface ProductCardProps {
@@ -44,7 +47,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         )}>
           <div className="aspect-square relative">
             <img 
-              src={product.image} 
+              src={product.image_url || product.image || "/placeholder.svg"} 
               alt={product.name}
               className="w-full h-full object-cover"
             />
@@ -79,7 +82,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <div className="space-y-4">
           <div className="aspect-video relative rounded-lg overflow-hidden">
             <img 
-              src={product.image} 
+              src={product.image_url || product.image || "/placeholder.svg"} 
               alt={product.name}
               className="w-full h-full object-cover"
             />
@@ -87,10 +90,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           
           <div className="space-y-3">
             <h2 className="text-xl font-bold text-foreground">{product.name}</h2>
-            <p className="text-muted-foreground text-sm">{product.description}</p>
+            {product.description && (
+              <p className="text-muted-foreground text-sm">{product.description}</p>
+            )}
             
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">{product.weight}</span>
+              {product.weight && (
+                <span className="text-muted-foreground">{product.weight}</span>
+              )}
               <span className="text-2xl font-bold text-primary">€{product.price.toFixed(2)}</span>
             </div>
 
@@ -138,9 +145,11 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               </div>
             </div>
 
-            <div className="text-sm text-muted-foreground">
-              Tempo de preparação: {product.prepTime}
-            </div>
+            {(product.prepTime || product.prep_time) && (
+              <div className="text-sm text-muted-foreground">
+                Tempo de preparação: {product.prepTime || product.prep_time}
+              </div>
+            )}
 
             <Button 
               onClick={handleAddToCart}

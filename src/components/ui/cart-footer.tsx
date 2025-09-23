@@ -57,7 +57,7 @@ export function CartFooter({ items, onUpdateQuantity, onRemoveItem, onCheckout }
                   className="flex items-center gap-3 p-3 bg-card rounded-lg border"
                 >
                   <img 
-                    src={item.product.image}
+                    src={item.product.image_url || item.product.image || "/placeholder.svg"}
                     alt={item.product.name}
                     className="w-16 h-16 object-cover rounded-md"
                   />
