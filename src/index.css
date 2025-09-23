@@ -8,33 +8,50 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Maritime color palette */
+    --background: 210 100% 98%;
+    --foreground: 210 50% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 210 50% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 210 50% 8%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Ocean deep blue */
+    --primary: 210 60% 15%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Ocean light blue */
+    --secondary: 200 80% 92%;
+    --secondary-foreground: 210 60% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 200 50% 96%;
+    --muted-foreground: 210 25% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Orange accent */
+    --accent: 25 95% 65%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Cream tone */
+    --cream: 35 40% 92%;
+    --cream-foreground: 210 50% 8%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 200 40% 88%;
+    --input: 200 40% 88%;
+    --ring: 210 60% 15%;
+
+    /* Gradients */
+    --gradient-ocean: linear-gradient(135deg, hsl(210 60% 15%), hsl(200 70% 25%));
+    --gradient-sky: linear-gradient(180deg, hsl(200 80% 92%), hsl(210 100% 98%));
+    --gradient-sunset: linear-gradient(45deg, hsl(25 95% 65%), hsl(35 85% 70%));
+    
+    /* Shadows */
+    --shadow-ocean: 0 8px 32px hsl(210 60% 15% / 0.15);
+    --shadow-float: 0 4px 20px hsl(210 60% 15% / 0.1);
 
     --radius: 0.5rem;
 
@@ -56,33 +73,43 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 210 50% 8%;
+    --foreground: 200 80% 92%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 210 40% 12%;
+    --card-foreground: 200 80% 92%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 210 40% 12%;
+    --popover-foreground: 200 80% 92%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 200 80% 92%;
+    --primary-foreground: 210 60% 15%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 30% 20%;
+    --secondary-foreground: 200 80% 92%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 210 30% 18%;
+    --muted-foreground: 200 30% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 25 95% 65%;
+    --accent-foreground: 210 50% 8%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --cream: 210 25% 18%;
+    --cream-foreground: 200 80% 92%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 210 30% 20%;
+    --input: 210 30% 20%;
+    --ring: 200 80% 92%;
+
+    --gradient-ocean: linear-gradient(135deg, hsl(210 40% 12%), hsl(200 50% 18%));
+    --gradient-sky: linear-gradient(180deg, hsl(210 30% 20%), hsl(210 50% 8%));
+    --gradient-sunset: linear-gradient(45deg, hsl(25 95% 65%), hsl(35 85% 70%));
+    
+    --shadow-ocean: 0 8px 32px hsl(0 0% 0% / 0.3);
+    --shadow-float: 0 4px 20px hsl(0 0% 0% / 0.2);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
