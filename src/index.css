@@ -8,50 +8,50 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Maritime color palette */
-    --background: 210 100% 98%;
-    --foreground: 210 50% 8%;
+    /* Marisca Brand Color Palette */
+    --background: 38 28% 91%; /* Areia Clara #F4E9DC */
+    --foreground: 195 100% 14%; /* Azul Profundo #003049 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 210 50% 8%;
+    --card: 0 0% 100%; /* Branco Puro #FFFFFF */
+    --card-foreground: 195 100% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 50% 8%;
+    --popover-foreground: 195 100% 14%;
 
-    /* Ocean deep blue */
-    --primary: 210 60% 15%;
+    /* Azul Profundo (Base) */
+    --primary: 195 100% 14%; /* #003049 */
     --primary-foreground: 0 0% 100%;
 
-    /* Ocean light blue */
-    --secondary: 200 80% 92%;
-    --secondary-foreground: 210 60% 15%;
+    /* Verde-Alga (Secundário) */
+    --secondary: 174 54% 41%; /* #2A9D8F */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 200 50% 96%;
-    --muted-foreground: 210 25% 45%;
+    --muted: 38 28% 91%;
+    --muted-foreground: 210 9% 42%; /* Cinza Pérola #6C757D */
 
-    /* Orange accent */
-    --accent: 25 95% 65%;
+    /* Coral Suave (Acento) */
+    --accent: 11 77% 61%; /* #E76F51 */
     --accent-foreground: 0 0% 100%;
 
-    /* Cream tone */
-    --cream: 35 40% 92%;
-    --cream-foreground: 210 50% 8%;
+    /* Areia Clara (Neutro) */
+    --cream: 38 28% 91%; /* #F4E9DC */
+    --cream-foreground: 195 100% 14%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 200 40% 88%;
-    --input: 200 40% 88%;
-    --ring: 210 60% 15%;
+    --border: 38 20% 85%;
+    --input: 38 20% 85%;
+    --ring: 195 100% 14%;
 
-    /* Gradients */
-    --gradient-ocean: linear-gradient(135deg, hsl(210 60% 15%), hsl(200 70% 25%));
-    --gradient-sky: linear-gradient(180deg, hsl(200 80% 92%), hsl(210 100% 98%));
-    --gradient-sunset: linear-gradient(45deg, hsl(25 95% 65%), hsl(35 85% 70%));
+    /* Marisca Brand Gradients */
+    --gradient-ocean: linear-gradient(135deg, hsl(195 100% 14%), hsl(174 54% 41%));
+    --gradient-sky: linear-gradient(180deg, hsl(38 28% 91%), hsl(0 0% 100%));
+    --gradient-sunset: linear-gradient(45deg, hsl(11 77% 61%), hsl(38 40% 75%));
     
     /* Shadows */
-    --shadow-ocean: 0 8px 32px hsl(210 60% 15% / 0.15);
-    --shadow-float: 0 4px 20px hsl(210 60% 15% / 0.1);
+    --shadow-ocean: 0 8px 32px hsl(195 100% 14% / 0.15);
+    --shadow-float: 0 4px 20px hsl(195 100% 14% / 0.1);
 
     --radius: 0.5rem;
 
@@ -73,40 +73,40 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 210 50% 8%;
-    --foreground: 200 80% 92%;
+    --background: 195 100% 14%; /* Azul Profundo dark */
+    --foreground: 38 28% 91%; /* Areia Clara */
 
-    --card: 210 40% 12%;
-    --card-foreground: 200 80% 92%;
+    --card: 195 80% 18%;
+    --card-foreground: 38 28% 91%;
 
-    --popover: 210 40% 12%;
-    --popover-foreground: 200 80% 92%;
+    --popover: 195 80% 18%;
+    --popover-foreground: 38 28% 91%;
 
-    --primary: 200 80% 92%;
-    --primary-foreground: 210 60% 15%;
+    --primary: 174 54% 41%; /* Verde-Alga */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 30% 20%;
-    --secondary-foreground: 200 80% 92%;
+    --secondary: 195 60% 25%;
+    --secondary-foreground: 38 28% 91%;
 
-    --muted: 210 30% 18%;
-    --muted-foreground: 200 30% 65%;
+    --muted: 195 60% 20%;
+    --muted-foreground: 210 9% 65%;
 
-    --accent: 25 95% 65%;
-    --accent-foreground: 210 50% 8%;
+    --accent: 11 77% 61%; /* Coral Suave */
+    --accent-foreground: 0 0% 100%;
 
-    --cream: 210 25% 18%;
-    --cream-foreground: 200 80% 92%;
+    --cream: 195 60% 20%;
+    --cream-foreground: 38 28% 91%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 210 30% 20%;
-    --input: 210 30% 20%;
-    --ring: 200 80% 92%;
+    --border: 195 40% 25%;
+    --input: 195 40% 25%;
+    --ring: 174 54% 41%;
 
-    --gradient-ocean: linear-gradient(135deg, hsl(210 40% 12%), hsl(200 50% 18%));
-    --gradient-sky: linear-gradient(180deg, hsl(210 30% 20%), hsl(210 50% 8%));
-    --gradient-sunset: linear-gradient(45deg, hsl(25 95% 65%), hsl(35 85% 70%));
+    --gradient-ocean: linear-gradient(135deg, hsl(195 100% 14%), hsl(174 54% 41%));
+    --gradient-sky: linear-gradient(180deg, hsl(195 60% 20%), hsl(195 100% 14%));
+    --gradient-sunset: linear-gradient(45deg, hsl(11 77% 61%), hsl(38 40% 75%));
     
     --shadow-ocean: 0 8px 32px hsl(0 0% 0% / 0.3);
     --shadow-float: 0 4px 20px hsl(0 0% 0% / 0.2);

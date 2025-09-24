@@ -73,7 +73,7 @@ export default function Index() {
             <div className="flex items-center gap-2">
               <Fish className="h-6 w-6" />
               <div>
-                <h1 className="text-xl font-bold">MariscoFresh</h1>
+                <h1 className="text-xl font-bold">Marisca</h1>
                 <p className="text-white/80 text-xs">Marisco fresco ao domicílio</p>
               </div>
             </div>
