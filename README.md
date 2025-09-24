@@ -1,73 +1,128 @@
-# Welcome to your Lovable project
+# Marisca - MVP PWA para Marisco Fresco 🦐
 
-## Project info
+**Marisca** é uma aplicação web progressiva (PWA) mobile-first para venda e entrega de marisco fresco ao domicílio em Portugal.
 
-**URL**: https://lovable.dev/projects/0502ee32-53e1-4df0-a4b5-2f512bcdc3d9
+## 🚀 Funcionalidades
 
-## How can I edit this code?
+### Core App (Mobile-First)
+- ✅ **Home**: Lista de produtos com cards (foto, nome, preço, peso, estado CRU/COZIDO)
+- ✅ **Product Quick-View Modal**: Modal sem navegação com quantidade, toggle CRU/COZIDO, tempo de preparação
+- ✅ **Carrinho Persistente**: Visível em rodapé com gestão de itens
+- ✅ **Checkout One-Page**: Morada, janela horária, observações, pagamento
+- ✅ **Express Checkout**: Integração com Stripe para pagamentos rápidos
+- ✅ **Guest Checkout**: Checkout sem registo + opção de registar
 
-There are several ways of editing your application.
+### Utilizador (Dashboard)
+- ✅ **Histórico de Encomendas**: Estados (pendente, confirmado, preparado, em entrega, entregue)
+- ✅ **Detalhe da Encomenda**: Informações completas das encomendas
+- ✅ **Perfil de Utilizador**: Gestão de dados pessoais
 
-**Use Lovable**
+### Administrador (Dashboard Web)
+- ✅ **CRUD de Produtos**: Nome, descrição, preço, estado, stock
+- ✅ **Gestão de Encomendas**: Filtrar por estado, mudar status
+- ✅ **Visão Geral**: Dashboard com métricas do dia
+- ✅ **Relatórios Simples**: Vendas do dia, produtos ativos
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0502ee32-53e1-4df0-a4b5-2f512bcdc3d9) and start prompting.
+### Integrações Técnicas
+- ✅ **Supabase**: Autenticação + Base de dados PostgreSQL
+- ✅ **Stripe**: Pagamentos (cartão + wallets)
+- ✅ **PWA**: Manifest + Service Worker
+- ✅ **Design System**: Cores da marca Marisca
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🎨 Design System - Paleta "Marisca"
 
-**Use your preferred IDE**
+- **Azul Profundo (Base)**: `#003049` - Confiança, frescura
+- **Verde-Alga (Secundário)**: `#2A9D8F` - Orgânico, natural
+- **Coral Suave (Acento)**: `#E76F51` - Vitalidade, contraste
+- **Areia Clara (Neutro)**: `#F4E9DC` - Minimal, suavidade
+- **Branco Puro**: `#FFFFFF` - Espaço, clareza
+- **Cinza Pérola**: `#6C757D` - Texto secundário
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🛠️ Tecnologias
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Frontend**: React + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Backend**: Supabase (PostgreSQL + Auth + Edge Functions)
+- **Payments**: Stripe
+- **PWA**: Service Worker + Web App Manifest
 
-Follow these steps:
+## 🚀 Quick Start
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+# Instalar dependências
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Iniciar desenvolvimento
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 📱 PWA Features
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **Installable**: Pode ser instalada como app nativo
+- **Offline Ready**: Service Worker para cache básico
+- **Mobile-First**: Design otimizado para dispositivos móveis
+- **App Icons**: Icons 192x192 e 512x512 para diferentes dispositivos
 
-**Use GitHub Codespaces**
+## 🗄️ Base de Dados
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Tabelas Principais:
+- `products`: Produtos (marisco fresco)
+- `orders`: Encomendas dos clientes
+- `order_items`: Itens das encomendas
+- `profiles`: Perfis dos utilizadores
+- `addresses`: Moradas de entrega
 
-## What technologies are used for this project?
+### Seed Data:
+Incluí 10 produtos de exemplo (lagosta, camarões, mexilhões, etc.)
 
-This project is built with:
+## 💳 Pagamentos
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Stripe Integration:
+- **Checkout Session**: Pagamento seguro via Stripe
+- **Guest Payments**: Pagamento sem registo
+- **Automatic Order Creation**: Encomendas criadas automaticamente
+- **Payment Success**: Página de confirmação pós-pagamento
 
-## How can I deploy this project?
+## 👥 Utilizadores
 
-Simply open [Lovable](https://lovable.dev/projects/0502ee32-53e1-4df0-a4b5-2f512bcdc3d9) and click on Share -> Publish.
+### Acesso Admin:
+Para aceder à área de administração, use um email que contenha "admin" (ex: admin@marisca.pt)
 
-## Can I connect a custom domain to my Lovable project?
+### Funcionalidades de Admin:
+- Dashboard com métricas
+- Gestão de produtos (criar/editar)
+- Gestão de encomendas (atualizar estados)
+- Visão geral de vendas
 
-Yes, you can!
+## 🔐 Autenticação
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- **Signup/Login**: Via email e password
+- **Guest Checkout**: Compras sem registo
+- **Session Management**: Gestão automática de sessões
+- **Profile Management**: Gestão de perfis de utilizador
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 📈 Estados das Encomendas
+
+1. **Pendente**: Encomenda criada, pagamento pendente
+2. **Confirmado**: Pagamento confirmado
+3. **Preparado**: Marisco preparado
+4. **Em Entrega**: Encomenda a caminho
+5. **Entregue**: Encomenda entregue
+6. **Cancelado**: Encomenda cancelada
+
+## 🎯 Objetivos de UX
+
+- **Checkout rápido**: Mínimo de cliques possível
+- **Mobile-first**: Design otimizado para telemóvel
+- **Microinterações**: Toasts, loaders, transições suaves
+- **Acessibilidade**: Design inclusivo e intuitivo
+
+## 🔗 Links Úteis
+
+- **Supabase Dashboard**: Gestão da base de dados
+- **Stripe Dashboard**: Gestão de pagamentos
+- **PWA Testing**: Teste a instalação como app
+
+---
+
+**Marisca** - O seu marisco fresco, entregue com qualidade! 🌊

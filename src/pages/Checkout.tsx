@@ -22,12 +22,24 @@ interface CheckoutProps {
 export default function Checkout({ items, onOrderComplete }: CheckoutProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [guestEmail, setGuestEmail] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState({
+    name: "",
+    street: "",
+    city: "",
+    postalCode: "",
+    phone: "",
+  });
+  const [deliveryTimeSlot, setDeliveryTimeSlot] = useState("");
+  const [notes, setNotes] = useState("");
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  // Get cart items from localStorage or props
+  const cartItems = items.length > 0 ? items : JSON.parse(localStorage.getItem('cart') || '[]');
+  const totalItems = cartItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0);
+  const subtotal = cartItems.reduce((sum: number, item: CartItem) => sum + (item.product.price * item.quantity), 0);
   const deliveryFee = subtotal >= 30 ? 0 : 4.99;
-  const total = subtotal + deliveryFee;
+  const totalAmount = subtotal + deliveryFee;
 
   const timeSlots = [
     "10:00 - 12:00",
@@ -37,67 +49,58 @@ export default function Checkout({ items, onOrderComplete }: CheckoutProps) {
     "18:00 - 20:00"
   ];
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const handleSubmitOrder = async () => {
+    if (!deliveryAddress.street || !deliveryAddress.city || !deliveryAddress.postalCode) {
+      toast({
+        title: "Morada incompleta",
+        description: "Por favor, preencha todos os campos da morada",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const formData = new FormData(e.currentTarget);
-    const orderData = {
-      user_id: user?.id || null,
-      guest_email: user ? null : formData.get("email") as string,
-      total_amount: total,
-      delivery_fee: deliveryFee,
-      delivery_address: {
-        name: formData.get("name") as string,
-        street: formData.get("street") as string,
-        city: formData.get("city") as string,
-        postal_code: formData.get("postalCode") as string,
-        phone: formData.get("phone") as string,
-      },
-      delivery_time_slot: formData.get("timeSlot") as string,
-      notes: formData.get("notes") as string,
-      payment_method: "pending",
-    };
+    if (!guestEmail && !user) {
+      toast({
+        title: "Email obrigatório",
+        description: "Por favor, introduza o seu email",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert(orderData)
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // Insert order items
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        product_id: item.product.id,
-        quantity: item.quantity,
-        unit_price: item.product.price,
-        state: item.state,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-
-      toast({
-        title: "Encomenda criada com sucesso!",
-        description: `Número da encomenda: ${order.id.slice(0, 8)}`,
+      // Create Stripe checkout session
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          cartItems,
+          deliveryFee,
+          totalAmount,
+          deliveryAddress,
+          deliveryTimeSlot,
+          notes,
+          guestEmail: !user ? guestEmail : undefined,
+        },
       });
 
-      onOrderComplete();
-      navigate("/dashboard");
+      if (error) throw error;
+
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL de pagamento não recebida');
+      }
+
     } catch (error: any) {
       toast({
-        title: "Erro ao criar encomenda",
+        title: "Erro ao processar pagamento",
         description: error.message,
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -187,7 +190,7 @@ export default function Checkout({ items, onOrderComplete }: CheckoutProps) {
         </Card>
 
         {/* Checkout Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmitOrder} className="space-y-6">
           {/* Delivery Address */}
           <Card>
             <CardHeader>
@@ -285,21 +288,21 @@ export default function Checkout({ items, onOrderComplete }: CheckoutProps) {
             </CardContent>
           </Card>
 
-          <Button
-            type="submit"
-            className="w-full bg-gradient-sunset hover:opacity-90 text-white font-semibold py-3"
-            size="lg"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                A processar...
-              </>
-            ) : (
-              `Confirmar Encomenda - €${total.toFixed(2)}`
-            )}
-          </Button>
+            <Button
+              type="submit"
+              className="w-full bg-gradient-sunset hover:opacity-90 text-white font-semibold py-3"
+              size="lg"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  A processar...
+                </>
+              ) : (
+                `Confirmar Encomenda - €${totalAmount.toFixed(2)}`
+              )}
+            </Button>
         </form>
       </div>
     </div>
