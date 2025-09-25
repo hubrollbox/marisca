@@ -183,7 +183,7 @@ export default function Checkout({ items, onOrderComplete }: CheckoutProps) {
               <Separator />
               <div className="flex justify-between font-semibold text-lg">
                 <span>Total</span>
-                <span>€{total.toFixed(2)}</span>
+                <span>€{totalAmount.toFixed(2)}</span>
               </div>
             </div>
           </CardContent>
