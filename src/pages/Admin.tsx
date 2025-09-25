@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { productSchema } from "@/lib/validations";
 import { 
   ArrowLeft, Package, Plus, Edit, Eye, Trash2, 
   Users, ShoppingCart, TrendingUp, Loader2,
@@ -58,6 +59,8 @@ export default function Admin() {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [newProduct, setNewProduct] = useState({
     name: "",
     description: "",
@@ -68,14 +71,42 @@ export default function Admin() {
     prep_time: ""
   });
 
-  // Check if user is admin (simple check - in production use proper role system)
-  const isAdmin = user?.email === "admin@marisca.pt" || user?.email?.includes("admin");
+  useEffect(() => {
+    if (user) {
+      checkAdminRole();
+    } else if (!loading) {
+      setCheckingAdmin(false);
+    }
+  }, [user, loading]);
 
   useEffect(() => {
-    if (user && isAdmin) {
+    if (isAdmin) {
       fetchData();
     }
-  }, [user, isAdmin]);
+  }, [isAdmin]);
+
+  const checkAdminRole = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .eq('role', 'admin')
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
+      } else {
+        setIsAdmin(!!data);
+      }
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+      setIsAdmin(false);
+    } finally {
+      setCheckingAdmin(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -108,14 +139,24 @@ export default function Admin() {
 
   const handleCreateProduct = async () => {
     try {
-      const { error } = await supabase.from("products").insert({
+      // Validate input data
+      const validatedData = productSchema.parse({
         name: newProduct.name,
         description: newProduct.description,
         price: parseFloat(newProduct.price),
         weight: newProduct.weight,
-        states: newProduct.states,
-        stock: parseInt(newProduct.stock) || 0,
         prep_time: newProduct.prep_time,
+        stock: parseInt(newProduct.stock) || 0,
+      });
+      
+      const { error } = await supabase.from("products").insert({
+        name: validatedData.name,
+        description: validatedData.description,
+        price: validatedData.price,
+        weight: validatedData.weight,
+        prep_time: validatedData.prep_time,
+        stock: validatedData.stock || 0,
+        states: newProduct.states,
         available: true
       });
 
@@ -138,9 +179,13 @@ export default function Admin() {
 
       fetchData();
     } catch (error: any) {
+      const errorMessage = error.name === 'ZodError' 
+        ? `Erro de validação: ${error.errors[0]?.message}`
+        : 'Erro ao criar produto';
+      
       toast({
         title: "Erro ao criar produto",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -175,7 +220,7 @@ export default function Admin() {
     navigate("/");
   };
 
-  if (loading) {
+  if (loading || checkingAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

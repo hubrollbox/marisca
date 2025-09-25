@@ -12,6 +12,7 @@ import { CartItem } from "@/components/ui/cart-footer";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { addressSchema, guestEmailSchema, checkoutNotesSchema } from "@/lib/validations";
 import { ArrowLeft, Clock, MapPin, CreditCard, Loader2 } from "lucide-react";
 
 interface CheckoutProps {
@@ -49,54 +50,92 @@ export default function Checkout({ items, onOrderComplete }: CheckoutProps) {
     "18:00 - 20:00"
   ];
 
-  const handleSubmitOrder = async () => {
-    if (!deliveryAddress.street || !deliveryAddress.city || !deliveryAddress.postalCode) {
-      toast({
-        title: "Morada incompleta",
-        description: "Por favor, preencha todos os campos da morada",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!guestEmail && !user) {
-      toast({
-        title: "Email obrigatório",
-        description: "Por favor, introduza o seu email",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleSubmitOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
 
     try {
-      // Create Stripe checkout session
-      const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: {
-          cartItems,
-          deliveryFee,
-          totalAmount,
-          deliveryAddress,
-          deliveryTimeSlot,
-          notes,
-          guestEmail: !user ? guestEmail : undefined,
-        },
-      });
+      // Collect form data
+      const formData = new FormData(e.target as HTMLFormElement);
+      const deliveryAddress = {
+        name: formData.get('name') as string,
+        street: formData.get('street') as string,
+        city: formData.get('city') as string,
+        postalCode: formData.get('postalCode') as string,
+        phone: formData.get('phone') as string,
+      };
 
-      if (error) throw error;
-
-      if (data.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
-      } else {
-        throw new Error('URL de pagamento não recebida');
+      // Validate form data
+      addressSchema.parse(deliveryAddress);
+      
+      if (!user && guestEmail) {
+        guestEmailSchema.parse({ email: guestEmail });
+      }
+      
+      if (notes) {
+        checkoutNotesSchema.parse({ notes });
       }
 
+      const timeSlot = formData.get('timeSlot') as string;
+      if (!timeSlot) {
+        toast({
+          title: "Horário obrigatório",
+          description: "Por favor selecione um horário de entrega",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Prepare payment request
+      const paymentRequest = {
+        items: cartItems.map(item => ({
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          state: item.state
+        })),
+        deliveryAddress,
+        deliveryTimeSlot: timeSlot,
+        notes,
+        guestEmail: !user ? guestEmail : undefined
+      };
+
+      // Call the edge function to create payment session
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: paymentRequest
+      });
+
+      if (error) {
+        console.error('Payment error:', error);
+        toast({
+          title: "Erro ao processar pagamento",
+          description: "Tente novamente em alguns momentos",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.url) {
+        // Redirect to Stripe Checkout
+        window.open(data.url, '_blank');
+        onOrderComplete();
+      } else {
+        toast({
+          title: "Erro",
+          description: "Erro ao criar sessão de pagamento",
+          variant: "destructive",
+        });
+      }
     } catch (error: any) {
+      console.error('Error submitting order:', error);
+      const errorMessage = error.name === 'ZodError' 
+        ? `Erro de validação: ${error.errors[0]?.message}`
+        : 'Erro ao processar pedido';
+      
       toast({
-        title: "Erro ao processar pagamento",
-        description: error.message,
+        title: "Erro no pedido",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

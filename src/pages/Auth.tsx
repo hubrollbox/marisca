@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
+import { signUpSchema, signInSchema } from "@/lib/validations";
 import { Fish, Loader2 } from "lucide-react";
 
 export default function Auth() {
@@ -29,54 +30,88 @@ export default function Auth() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
 
-    const { error } = await signIn(email, password);
+      // Validate input
+      const validatedData = signInSchema.parse({ email, password });
 
-    if (error) {
+      const { error } = await signIn(validatedData.email, validatedData.password);
+
+      if (error) {
+        // Handle specific auth errors with user-friendly messages
+        const userFriendlyMessage = error.message === 'Invalid login credentials' 
+          ? 'Email ou password incorretos'
+          : error.message === 'Email not confirmed'
+          ? 'Por favor confirme o seu email antes de fazer login'
+          : 'Erro ao fazer login';
+        toast({
+          title: "Erro no Login",
+          description: userFriendlyMessage,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Bem-vindo de volta ao MariscoFresh.",
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: "Erro no Login",
-        description: error.message,
+        title: "Erro de validação",
+        description: error.errors?.[0]?.message || 'Dados inválidos',
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta ao MariscoFresh.",
-      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const firstName = formData.get("firstName") as string;
-    const lastName = formData.get("lastName") as string;
+    try {
+      const formData = new FormData(e.currentTarget);
+      const firstName = formData.get("firstName") as string;
+      const lastName = formData.get("lastName") as string;
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
 
-    const { error } = await signUp(email, password, firstName, lastName);
+      // Validate input
+      const validatedData = signUpSchema.parse({ firstName, lastName, email, password });
 
-    if (error) {
+      const { error } = await signUp(validatedData.email, validatedData.password, validatedData.firstName, validatedData.lastName);
+
+      if (error) {
+        // Handle specific auth errors with user-friendly messages
+        const userFriendlyMessage = error.message === 'User already registered'
+          ? 'Este email já está registado'
+          : error.message === 'Password should be at least 6 characters'
+          ? 'Password deve ter pelo menos 6 caracteres'
+          : 'Erro ao criar conta';
+        toast({
+          title: "Erro no Registo",
+          description: userFriendlyMessage,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Verifique o seu email para confirmar a conta.",
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: "Erro no Registo",
-        description: error.message,
+        title: "Erro de validação",
+        description: error.errors?.[0]?.message || 'Dados inválidos',
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Conta criada com sucesso!",
-        description: "Verifique o seu email para confirmar a conta.",
-      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   return (

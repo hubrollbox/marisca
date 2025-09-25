@@ -8,22 +8,54 @@ const corsHeaders = {
 };
 
 interface PaymentRequest {
-  cartItems: Array<{
-    product: {
-      id: string;
-      name: string;
-      price: number;
-    };
+  items: Array<{
+    id: string;
+    name: string;
+    price: number;
     quantity: number;
-    state: "CRU" | "COZIDO";
+    state: string;
   }>;
-  deliveryFee: number;
-  totalAmount: number;
-  deliveryAddress: any;
+  deliveryAddress: {
+    name: string;
+    street: string;
+    city: string;
+    postalCode: string;
+    phone: string;
+  };
   deliveryTimeSlot?: string;
   notes?: string;
   guestEmail?: string;
 }
+
+// Validation functions
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+};
+
+const validateItems = (items: any[]): boolean => {
+  return items && 
+    Array.isArray(items) && 
+    items.length > 0 && 
+    items.length <= 50 &&
+    items.every(item => 
+      item.id && typeof item.id === 'string' &&
+      item.name && typeof item.name === 'string' && item.name.length <= 100 &&
+      typeof item.price === 'number' && item.price > 0 && item.price <= 999999 &&
+      typeof item.quantity === 'number' && item.quantity > 0 && item.quantity <= 99 &&
+      item.state && ['CRU', 'COZIDO', 'GRELHADO'].includes(item.state)
+    );
+};
+
+const validateAddress = (address: any): boolean => {
+  const postalCodeRegex = /^\d{4}-\d{3}$/;
+  return address &&
+    address.name && typeof address.name === 'string' && address.name.length <= 100 &&
+    address.street && typeof address.street === 'string' && address.street.length <= 200 &&
+    address.city && typeof address.city === 'string' && address.city.length <= 100 &&
+    address.postalCode && postalCodeRegex.test(address.postalCode) &&
+    address.phone && typeof address.phone === 'string' && address.phone.length <= 20;
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -32,17 +64,34 @@ serve(async (req) => {
   }
 
   try {
+    const paymentData: PaymentRequest = await req.json();
+    
+    // Validate request data
+    if (!paymentData || typeof paymentData !== 'object') {
+      throw new Error('Dados de pagamento inválidos');
+    }
+    
+    if (!validateItems(paymentData.items)) {
+      throw new Error('Items de carrinho inválidos');
+    }
+    
+    if (!validateAddress(paymentData.deliveryAddress)) {
+      throw new Error('Dados de entrega inválidos');
+    }
+    
+    if (paymentData.notes && paymentData.notes.length > 500) {
+      throw new Error('Notas excedem o limite de caracteres');
+    }
+    
+    if (paymentData.guestEmail && !validateEmail(paymentData.guestEmail)) {
+      throw new Error('Email de convidado inválido');
+    }
+    
+    // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
-
-    const { cartItems, deliveryFee, totalAmount, deliveryAddress, deliveryTimeSlot, notes, guestEmail }: PaymentRequest = await req.json();
-
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
-    });
 
     let user = null;
     let customerId = undefined;
@@ -59,11 +108,16 @@ serve(async (req) => {
       }
     }
 
-    const customerEmail = user?.email || guestEmail;
+    const customerEmail = user?.email || paymentData.guestEmail;
     
     if (!customerEmail) {
       throw new Error("Email é obrigatório");
     }
+
+    // Initialize Stripe
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2025-08-27.basil",
+    });
 
     // Check if a Stripe customer record exists
     const customers = await stripe.customers.list({ email: customerEmail, limit: 1 });
@@ -78,17 +132,21 @@ serve(async (req) => {
     }
 
     // Create line items for Stripe
-    const lineItems = cartItems.map(item => ({
+    const lineItems = paymentData.items.map(item => ({
       price_data: {
         currency: 'eur',
         product_data: {
-          name: `${item.product.name} (${item.state})`,
+          name: `${item.name} (${item.state})`,
         },
-        unit_amount: Math.round(item.product.price * 100), // Convert to cents
+        unit_amount: Math.round(item.price * 100), // Convert to cents
       },
       quantity: item.quantity,
     }));
 
+    // Calculate delivery fee
+    const subtotal = paymentData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const deliveryFee = subtotal >= 30 ? 0 : 4.99;
+    
     // Add delivery fee if applicable
     if (deliveryFee > 0) {
       lineItems.push({
@@ -102,6 +160,8 @@ serve(async (req) => {
         quantity: 1,
       });
     }
+
+    const totalAmount = subtotal + deliveryFee;
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
@@ -119,23 +179,23 @@ serve(async (req) => {
       },
       metadata: {
         user_id: user?.id || 'guest',
-        guest_email: guestEmail || '',
-        delivery_time_slot: deliveryTimeSlot || '',
-        notes: notes || '',
-        delivery_address: JSON.stringify(deliveryAddress),
+        guest_email: paymentData.guestEmail || '',
+        delivery_time_slot: paymentData.deliveryTimeSlot || '',
+        notes: paymentData.notes || '',
+        delivery_address: JSON.stringify(paymentData.deliveryAddress),
       },
     });
 
     // Create pending order in database
     const orderData = {
       user_id: user?.id || null,
-      guest_email: guestEmail || null,
-      status: 'pendente',
+      guest_email: paymentData.guestEmail || null,
+      status: 'pendente' as const,
       total_amount: totalAmount,
       delivery_fee: deliveryFee,
-      delivery_address: deliveryAddress,
-      delivery_time_slot: deliveryTimeSlot,
-      notes: notes,
+      delivery_address: paymentData.deliveryAddress,
+      delivery_time_slot: paymentData.deliveryTimeSlot,
+      notes: paymentData.notes,
       stripe_payment_intent_id: session.id,
       payment_status: 'pending',
     };
@@ -149,12 +209,12 @@ serve(async (req) => {
     if (orderError) throw orderError;
 
     // Insert order items
-    const orderItems = cartItems.map(item => ({
+    const orderItems = paymentData.items.map(item => ({
       order_id: order.id,
-      product_id: item.product.id,
+      product_id: item.id,
       quantity: item.quantity,
-      state: item.state,
-      unit_price: item.product.price,
+      state: item.state as "CRU" | "COZIDO" | "GRELHADO",
+      unit_price: item.price,
     }));
 
     const { error: itemsError } = await supabaseClient
@@ -170,11 +230,26 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
+
   } catch (error) {
-    console.error("Payment creation error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    console.error('Payment creation error:', error);
+    
+    // Don't expose internal error details
+    const isValidationError = error instanceof Error && (
+      error.message.includes('inválido') || 
+      error.message.includes('limite') || 
+      error.message.includes('Email') ||
+      error.message === 'User not authenticated'
+    );
+    
+    const errorMessage = isValidationError ? error.message : 'Erro interno do servidor';
+    
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: isValidationError ? 400 : 500
+      }
+    );
   }
 });
