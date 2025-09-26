@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CartItem, CartFooter } from "@/components/ui/cart-footer";
+import { CartFooter } from "@/components/ui/cart-footer";
 import { ProductCard } from "@/components/ui/product-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,11 +10,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { Search, User, Loader2, MapPin } from "lucide-react";
 import { MariscaLogo } from "@/components/MariscaLogo";
 import heroImage from "@/assets/hero-seafood.jpg";
+import { useCart } from "@/hooks/use-cart";
 
 export default function Index() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { items: cartItems, addItem, updateQuantity, removeItem } = useCart();
   const { toast } = useToast();
   const { data: products, isLoading } = useProducts();
   const { user } = useAuth();
@@ -24,41 +25,17 @@ export default function Index() {
   ) || [];
 
   const addToCart = (product: any, quantity: number, state: "CRU" | "COZIDO") => {
-    const existingItemIndex = cartItems.findIndex(
-      item => item.product.id === product.id && item.state === state
-    );
-
-    if (existingItemIndex >= 0) {
-      const updatedItems = [...cartItems];
-      updatedItems[existingItemIndex].quantity += quantity;
-      setCartItems(updatedItems);
-    } else {
-      setCartItems([...cartItems, { product, quantity, state }]);
-    }
-
-    toast({
-      title: "Adicionado ao carrinho",
-      description: `${quantity}x ${product.name} (${state})`,
-    });
+    addItem(product, quantity, state);
+    toast({ title: "Adicionado ao carrinho", description: `${quantity}x ${product.name} (${state})` });
   };
 
   const handleUpdateQuantity = (productId: string, state: "CRU" | "COZIDO", newQuantity: number) => {
-    setCartItems(cartItems.map(item =>
-      item.product.id === productId && item.state === state
-        ? { ...item, quantity: newQuantity }
-        : item
-    ));
+    updateQuantity(productId, state, newQuantity);
   };
 
   const handleRemoveItem = (productId: string, state: "CRU" | "COZIDO") => {
-    setCartItems(cartItems.filter(item =>
-      !(item.product.id === productId && item.state === state)
-    ));
-    
-    toast({
-      title: "Removido do carrinho",
-      description: "Item removido com sucesso",
-    });
+    removeItem(productId, state);
+    toast({ title: "Removido do carrinho", description: "Item removido com sucesso" });
   };
 
   const onCheckout = () => {
