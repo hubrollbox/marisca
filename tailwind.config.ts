@@ -64,12 +64,12 @@ export default {
       },
       backgroundImage: {
         'gradient-ocean': 'var(--gradient-ocean)',
-        'gradient-sky': 'var(--gradient-sky)',
-        'gradient-sunset': 'var(--gradient-sunset)',
+        'gradient-sand': 'var(--gradient-sand)',
+        'gradient-coral': 'var(--gradient-coral)',
       },
       boxShadow: {
-        'ocean': 'var(--shadow-ocean)',
-        'float': 'var(--shadow-float)',
+        'elegant': 'var(--shadow-elegant)',
+        'glow': 'var(--shadow-glow)',
       },
       borderRadius: {
         lg: "var(--radius)",

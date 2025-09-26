@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/hooks/use-products";
 import { useAuth } from "@/hooks/use-auth";
-import { Search, Fish, User, Loader2, MapPin } from "lucide-react";
+import { Search, User, Loader2, MapPin } from "lucide-react";
+import { MariscaLogo } from "@/components/MariscaLogo";
 import heroImage from "@/assets/hero-seafood.jpg";
 
 export default function Index() {
@@ -65,22 +66,23 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-sky">
+    <div className="min-h-screen bg-gradient-sand">
       {/* Header */}
-      <header className="bg-gradient-ocean text-white sticky top-0 z-40 shadow-ocean">
+      <header className="bg-gradient-ocean text-white sticky top-0 z-40 shadow-elegant">
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Fish className="h-6 w-6" />
+            <div className="flex items-center gap-3">
+              <MariscaLogo size="sm" className="filter brightness-0 invert" />
               <div>
-                <h1 className="text-xl font-bold">Marisca</h1>
-                <p className="text-white/80 text-xs">Marisco fresco ao domicílio</p>
+                <h1 className="text-xl font-bold tracking-wide">Marisca</h1>
+                <p className="text-white/80 text-xs">A essência que vem do mar</p>
               </div>
             </div>
             <Button 
               variant="ghost" 
               size="icon"
               onClick={() => user ? navigate("/dashboard") : navigate("/auth")}
+              className="hover:bg-white/10"
             >
               <User className="h-5 w-5" />
             </Button>

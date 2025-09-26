@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
 import { signUpSchema, signInSchema } from "@/lib/validations";
-import { Fish, Loader2 } from "lucide-react";
+import { MariscaLogo } from "@/components/MariscaLogo";
+import { Loader2 } from "lucide-react";
 
 export default function Auth() {
   const { user, signIn, signUp, loading } = useAuth();
@@ -115,20 +116,22 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-ocean flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-sand flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 text-white mb-4">
-            <Fish className="h-8 w-8" />
-            <span className="text-2xl font-bold">MariscoFresh</span>
+          <div className="inline-flex items-center gap-3 text-primary mb-4">
+            <MariscaLogo size="lg" />
+            <div className="text-left">
+              <h1 className="text-2xl font-bold text-primary">Marisca</h1>
+              <p className="text-sm text-muted-foreground">A essência que vem do mar</p>
+            </div>
           </div>
-          <p className="text-white/80">Marisco fresco entregue à sua porta</p>
         </div>
 
-        <Card className="bg-white/95 backdrop-blur-sm border-white/20">
+        <Card className="shadow-elegant border-border">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Bem-vindo</CardTitle>
-            <CardDescription className="text-center">
+            <CardTitle className="text-2xl text-center text-primary">Bem-vindo</CardTitle>
+            <CardDescription className="text-center text-muted-foreground">
               Entre na sua conta ou crie uma nova para continuar
             </CardDescription>
           </CardHeader>
@@ -163,7 +166,7 @@ export default function Auth() {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-sunset hover:opacity-90"
+                    className="w-full bg-gradient-coral hover:opacity-90"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
@@ -223,7 +226,7 @@ export default function Auth() {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-sunset hover:opacity-90"
+                    className="w-full bg-gradient-coral hover:opacity-90"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (

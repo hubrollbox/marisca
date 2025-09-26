@@ -8,116 +8,104 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Marisca Brand Color Palette */
-    --background: 38 28% 91%; /* Areia Clara #F4E9DC */
-    --foreground: 195 100% 14%; /* Azul Profundo #003049 */
-
-    --card: 0 0% 100%; /* Branco Puro #FFFFFF */
-    --card-foreground: 195 100% 14%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 195 100% 14%;
-
-    /* Azul Profundo (Base) */
-    --primary: 195 100% 14%; /* #003049 */
+    /* Marisca Brand Color Palette - Manual da Marca */
+    /* Azul Profundo (Primária) #0A2342 */
+    --primary: 214 78% 15%;
     --primary-foreground: 0 0% 100%;
-
-    /* Verde-Alga (Secundário) */
-    --secondary: 174 54% 41%; /* #2A9D8F */
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 38 28% 91%;
-    --muted-foreground: 210 9% 42%; /* Cinza Pérola #6C757D */
-
-    /* Coral Suave (Acento) */
-    --accent: 11 77% 61%; /* #E76F51 */
+    
+    /* Branco Puro (Estrutural) #FFFFFF */
+    --background: 0 0% 100%;
+    --foreground: 214 78% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 214 78% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 214 78% 15%;
+    
+    /* Areia Quente (Secundária) #C4B7A6 */
+    --secondary: 38 22% 70%;
+    --secondary-foreground: 214 78% 15%;
+    
+    /* Vermelho Coral (Acento) #E36355 */
+    --accent: 6 68% 62%;
     --accent-foreground: 0 0% 100%;
-
-    /* Areia Clara (Neutro) */
-    --cream: 38 28% 91%; /* #F4E9DC */
-    --cream-foreground: 195 100% 14%;
-
+    
+    /* Grafite Marinho (Utilitária) #1D1D1D */
+    --muted: 38 22% 85%;
+    --muted-foreground: 0 0% 11%;
+    
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 38 20% 85%;
-    --input: 38 20% 85%;
-    --ring: 195 100% 14%;
-
-    /* Marisca Brand Gradients */
-    --gradient-ocean: linear-gradient(135deg, hsl(195 100% 14%), hsl(174 54% 41%));
-    --gradient-sky: linear-gradient(180deg, hsl(38 28% 91%), hsl(0 0% 100%));
-    --gradient-sunset: linear-gradient(45deg, hsl(11 77% 61%), hsl(38 40% 75%));
     
-    /* Shadows */
-    --shadow-ocean: 0 8px 32px hsl(195 100% 14% / 0.15);
-    --shadow-float: 0 4px 20px hsl(195 100% 14% / 0.1);
-
+    --border: 38 22% 85%;
+    --input: 38 22% 85%;
+    --ring: 214 78% 15%;
+    
+    /* Marisca Brand Gradients */
+    --gradient-ocean: linear-gradient(135deg, hsl(214 78% 15%), hsl(214 78% 25%));
+    --gradient-sand: linear-gradient(180deg, hsl(38 22% 85%), hsl(0 0% 100%));
+    --gradient-coral: linear-gradient(45deg, hsl(6 68% 62%), hsl(38 22% 70%));
+    
+    /* Shadows with brand colors */
+    --shadow-elegant: 0 10px 30px -10px hsl(214 78% 15% / 0.3);
+    --shadow-glow: 0 0 40px hsl(6 68% 62% / 0.4);
+    
     --radius: 0.5rem;
-
+    
     --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-foreground: 214 78% 15%;
+    --sidebar-primary: 214 78% 15%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 38 22% 90%;
+    --sidebar-accent-foreground: 214 78% 15%;
+    --sidebar-border: 38 22% 85%;
+    --sidebar-ring: 214 78% 15%;
   }
 
   .dark {
-    --background: 195 100% 14%; /* Azul Profundo dark */
-    --foreground: 38 28% 91%; /* Areia Clara */
-
-    --card: 195 80% 18%;
-    --card-foreground: 38 28% 91%;
-
-    --popover: 195 80% 18%;
-    --popover-foreground: 38 28% 91%;
-
-    --primary: 174 54% 41%; /* Verde-Alga */
+    /* Dark mode adaptations with Marisca colors */
+    --background: 214 78% 8%;
+    --foreground: 38 22% 85%;
+    
+    --card: 214 60% 12%;
+    --card-foreground: 38 22% 85%;
+    
+    --popover: 214 60% 12%;
+    --popover-foreground: 38 22% 85%;
+    
+    --primary: 6 68% 62%; /* Coral accent as primary in dark */
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 195 60% 25%;
-    --secondary-foreground: 38 28% 91%;
-
-    --muted: 195 60% 20%;
-    --muted-foreground: 210 9% 65%;
-
-    --accent: 11 77% 61%; /* Coral Suave */
+    
+    --secondary: 38 22% 25%;
+    --secondary-foreground: 38 22% 85%;
+    
+    --muted: 214 60% 15%;
+    --muted-foreground: 38 22% 65%;
+    
+    --accent: 6 68% 62%;
     --accent-foreground: 0 0% 100%;
-
-    --cream: 195 60% 20%;
-    --cream-foreground: 38 28% 91%;
-
+    
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 195 40% 25%;
-    --input: 195 40% 25%;
-    --ring: 174 54% 41%;
-
-    --gradient-ocean: linear-gradient(135deg, hsl(195 100% 14%), hsl(174 54% 41%));
-    --gradient-sky: linear-gradient(180deg, hsl(195 60% 20%), hsl(195 100% 14%));
-    --gradient-sunset: linear-gradient(45deg, hsl(11 77% 61%), hsl(38 40% 75%));
     
-    --shadow-ocean: 0 8px 32px hsl(0 0% 0% / 0.3);
-    --shadow-float: 0 4px 20px hsl(0 0% 0% / 0.2);
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 214 40% 20%;
+    --input: 214 40% 20%;
+    --ring: 6 68% 62%;
+    
+    --gradient-ocean: linear-gradient(135deg, hsl(214 78% 8%), hsl(214 78% 15%));
+    --gradient-sand: linear-gradient(180deg, hsl(214 60% 15%), hsl(214 78% 8%));
+    --gradient-coral: linear-gradient(45deg, hsl(6 68% 62%), hsl(38 22% 30%));
+    
+    --shadow-elegant: 0 10px 30px -10px hsl(0 0% 0% / 0.5);
+    --shadow-glow: 0 0 40px hsl(6 68% 62% / 0.3);
+    
+    --sidebar-background: 214 78% 8%;
+    --sidebar-foreground: 38 22% 85%;
+    --sidebar-primary: 6 68% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 214 60% 15%;
+    --sidebar-accent-foreground: 38 22% 85%;
+    --sidebar-border: 214 40% 20%;
+    --sidebar-ring: 6 68% 62%;
   }
 }
 
