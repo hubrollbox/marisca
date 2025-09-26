@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { paymentRateLimiter, getClientIP, logSecurityEvent } from "../rate-limiter/index.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -63,6 +64,31 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const clientIP = getClientIP(req);
+  
+  // Rate limiting check
+  const rateLimitResult = paymentRateLimiter.checkLimit(clientIP);
+  if (!rateLimitResult.allowed) {
+    logSecurityEvent('RATE_LIMIT_EXCEEDED', {
+      ip: clientIP,
+      endpoint: 'create-payment',
+      resetTime: new Date(rateLimitResult.resetTime).toISOString()
+    });
+    
+    return new Response(
+      JSON.stringify({ error: 'Muitas tentativas. Tente novamente mais tarde.' }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "application/json",
+          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+          "X-RateLimit-Reset": rateLimitResult.resetTime.toString()
+        },
+        status: 429
+      }
+    );
+  }
+
   try {
     const paymentData: PaymentRequest = await req.json();
     
@@ -104,7 +130,11 @@ serve(async (req) => {
         const { data } = await supabaseClient.auth.getUser(token);
         user = data.user;
       } catch (error) {
-        console.log("No authenticated user, proceeding as guest");
+        // Log potential authentication issues for security monitoring
+        logSecurityEvent('AUTH_TOKEN_INVALID', {
+          ip: clientIP,
+          userAgent: req.headers.get('user-agent'),
+        });
       }
     }
 
@@ -223,16 +253,35 @@ serve(async (req) => {
 
     if (itemsError) throw itemsError;
 
+    // Log successful payment creation
+    logSecurityEvent('PAYMENT_CREATED', {
+      orderId: order.id,
+      userId: user?.id || 'guest',
+      email: customerEmail,
+      amount: totalAmount,
+      ip: clientIP
+    });
+
     return new Response(JSON.stringify({ 
       url: session.url,
       order_id: order.id 
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { 
+        ...corsHeaders, 
+        "Content-Type": "application/json",
+        "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+        "X-RateLimit-Reset": rateLimitResult.resetTime.toString()
+      },
       status: 200,
     });
 
   } catch (error) {
-    console.error('Payment creation error:', error);
+    // Log security-relevant errors
+    logSecurityEvent('PAYMENT_ERROR', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      ip: clientIP,
+      userAgent: req.headers.get('user-agent'),
+    });
     
     // Don't expose internal error details
     const isValidationError = error instanceof Error && (
@@ -247,7 +296,12 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "application/json",
+          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+          "X-RateLimit-Reset": rateLimitResult.resetTime.toString()
+        },
         status: isValidationError ? 400 : 500
       }
     );

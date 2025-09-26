@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
+import { useAdmin } from "@/hooks/use-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { productSchema } from "@/lib/validations";
@@ -55,12 +56,11 @@ const statusLabels = {
 export default function Admin() {
   const navigate = useNavigate();
   const { user, signOut, loading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const [activeTab, setActiveTab] = useState("overview");
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [newProduct, setNewProduct] = useState({
     name: "",
     description: "",
@@ -72,41 +72,25 @@ export default function Admin() {
   });
 
   useEffect(() => {
-    if (user) {
-      checkAdminRole();
-    } else if (!loading) {
-      setCheckingAdmin(false);
+    if (loading || adminLoading) return;
+    
+    if (!user) {
+      navigate('/auth');
+      return;
     }
-  }, [user, loading]);
 
-  useEffect(() => {
-    if (isAdmin) {
-      fetchData();
+    if (!isAdmin) {
+      toast({
+        title: "Acesso negado",
+        description: "Não tem permissões de administrador",
+        variant: "destructive",
+      });
+      navigate('/');
+      return;
     }
-  }, [isAdmin]);
 
-  const checkAdminRole = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .eq('role', 'admin')
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking admin role:', error);
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(!!data);
-      }
-    } catch (error) {
-      console.error('Error checking admin role:', error);
-      setIsAdmin(false);
-    } finally {
-      setCheckingAdmin(false);
-    }
-  };
+    fetchData();
+  }, [user, isAdmin, loading, adminLoading, navigate]);
 
   const fetchData = async () => {
     try {
@@ -220,7 +204,7 @@ export default function Admin() {
     navigate("/");
   };
 
-  if (loading || checkingAdmin) {
+  if (loading || adminLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

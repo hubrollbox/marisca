@@ -45,11 +45,32 @@ export function useAuth() {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      // Log successful login for security monitoring
+      if (!error) {
+        console.info('User login successful:', {
+          timestamp: new Date().toISOString(),
+          email: email
+        });
+      } else {
+        // Log failed login attempts
+        console.warn('Login attempt failed:', {
+          timestamp: new Date().toISOString(),
+          email: email,
+          error: error.message
+        });
+      }
+      
+      return { error };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { error: error as Error };
+    }
   };
 
   const signOut = async () => {
