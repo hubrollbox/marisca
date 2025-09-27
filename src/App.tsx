@@ -9,6 +9,9 @@ import Dashboard from "./pages/Dashboard";
 import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
+import CookiePolicy from "./pages/CookiePolicy";
 import NotFound from "./pages/NotFound";
 import { useState } from "react";
 import { CartItem } from "@/components/ui/cart-footer";
@@ -45,6 +48,9 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-conditions" element={<TermsConditions />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
             <Route 
               path="/checkout" 
               element={
