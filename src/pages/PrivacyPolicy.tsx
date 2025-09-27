@@ -1,146 +1,109 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Footer } from "@/components/Footer";
 import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { MariscaLogo } from "@/components/MariscaLogo";
+import { Footer } from "@/components/Footer";
 
 export default function PrivacyPolicy() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-background">
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b z-40">
-        <div className="max-w-4xl mx-auto p-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/")}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-xl font-semibold">Política de Privacidade</h1>
+    <div className="min-h-screen bg-gradient-sand flex flex-col">
+      {/* Header */}
+      <header className="bg-gradient-ocean text-white sticky top-0 z-40 shadow-elegant">
+        <div className="max-w-4xl mx-auto px-4 py-3 sm:py-4">
+          <div className="flex items-center gap-4">
+            <Link to="/">
+              <Button variant="ghost" size="icon" className="hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10">
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </Link>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <MariscaLogo size="sm" variant="white" />
+              <div>
+                <h1 className="text-base sm:text-lg font-bold">Política de Privacidade</h1>
+                <p className="text-white/80 text-xs sm:text-sm">Marisca</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Política de Privacidade - Marisca</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Última atualização: {new Date().toLocaleDateString('pt-PT')}
-            </p>
+      {/* Main Content */}
+      <main className="flex-1 max-w-4xl mx-auto px-4 py-6 sm:py-8">
+        <Card className="shadow-elegant">
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="text-xl sm:text-2xl text-primary">Política de Privacidade</CardTitle>
+            <p className="text-muted-foreground text-sm">Última atualização: 27 de setembro de 2024</p>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 px-4 sm:px-6">
             <section>
-              <h2 className="text-lg font-semibold mb-3">1. Identificação do Responsável</h2>
-              <div className="space-y-2 text-sm">
-                <p><strong>Denominação:</strong> Marisca</p>
-                <p><strong>NIF:</strong> A DEFINIR</p>
-                <p><strong>Morada:</strong> A DEFINIR</p>
-                <p><strong>Email:</strong> info@marisca.pt</p>
-              </div>
+              <h2 className="text-lg sm:text-xl font-semibold text-primary mb-3">1. Introdução</h2>
+              <p className="text-foreground leading-relaxed text-sm sm:text-base">
+                A Marisca compromete-se a proteger a sua privacidade e a garantir que os seus dados pessoais são tratados de forma segura e transparente, em conformidade com o Regulamento Geral sobre a Proteção de Dados (RGPD).
+              </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold mb-3">2. Dados Pessoais Recolhidos</h2>
-              <div className="space-y-2 text-sm">
-                <p>Recolhemos os seguintes tipos de dados pessoais:</p>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li><strong>Dados de Registo:</strong> Nome, email, telefone</li>
-                  <li><strong>Dados de Contacto:</strong> Morada de entrega, código postal</li>
-                  <li><strong>Dados de Pagamento:</strong> Informações de pagamento (processadas de forma segura)</li>
-                  <li><strong>Preferências:</strong> Preferências de produtos e horários de entrega</li>
-                  <li><strong>Dados de Utilização:</strong> Histórico de encomendas e interações com o serviço</li>
-                </ul>
-              </div>
+              <h2 className="text-lg sm:text-xl font-semibold text-primary mb-3">2. Dados que Recolhemos</h2>
+              <p className="text-foreground leading-relaxed mb-3 text-sm sm:text-base">
+                Recolhemos os seguintes tipos de dados pessoais:
+              </p>
+              <ul className="list-disc list-inside text-foreground space-y-1 text-sm sm:text-base">
+                <li>Nome completo e dados de contacto (email, telefone, morada)</li>
+                <li>Informações de pagamento (processadas de forma segura)</li>
+                <li>Histórico de encomendas e preferências</li>
+                <li>Dados de navegação e utilização da aplicação</li>
+              </ul>
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold mb-3">3. Base Legal e Finalidades</h2>
-              <div className="space-y-3 text-sm">
-                <div>
-                  <h3 className="font-medium">Execução de Contrato (3 anos)</h3>
-                  <p>Processamento de encomendas, gestão de entregas e suporte ao cliente.</p>
-                </div>
-                <div>
-                  <h3 className="font-medium">Consentimento (até revogação)</h3>
-                  <p>Marketing direto, newsletters e comunicações promocionais.</p>
-                </div>
-                <div>
-                  <h3 className="font-medium">Interesse Legítimo (2 anos)</h3>
-                  <p>Melhoria do serviço, análise de utilização e prevenção de fraudes.</p>
-                </div>
-              </div>
+              <h2 className="text-lg sm:text-xl font-semibold text-primary mb-3">3. Como Utilizamos os Seus Dados</h2>
+              <p className="text-foreground leading-relaxed mb-3 text-sm sm:text-base">
+                Os seus dados são utilizados para:
+              </p>
+              <ul className="list-disc list-inside text-foreground space-y-1 text-sm sm:text-base">
+                <li>Processar e entregar as suas encomendas</li>
+                <li>Comunicar sobre o estado das entregas</li>
+                <li>Melhorar os nossos serviços e experiência do utilizador</li>
+                <li>Cumprir obrigações legais e regulamentares</li>
+              </ul>
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold mb-3">4. Direitos do Utilizador</h2>
-              <div className="space-y-2 text-sm">
-                <p>Nos termos do RGPD, tem os seguintes direitos:</p>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li><strong>Acesso:</strong> Solicitar informações sobre os dados que processamos</li>
-                  <li><strong>Retificação:</strong> Corrigir dados incorretos ou incompletos</li>
-                  <li><strong>Eliminação:</strong> Solicitar a eliminação dos seus dados</li>
-                  <li><strong>Limitação:</strong> Restringir o processamento dos seus dados</li>
-                  <li><strong>Oposição:</strong> Opor-se ao processamento para fins de marketing</li>
-                  <li><strong>Portabilidade:</strong> Receber os seus dados num formato estruturado</li>
-                </ul>
-                <p className="mt-3">
-                  Para exercer estes direitos, contacte-nos através de: <strong>info@marisca.pt</strong>
-                </p>
-              </div>
+              <h2 className="text-lg sm:text-xl font-semibold text-primary mb-3">4. Partilha de Dados</h2>
+              <p className="text-foreground leading-relaxed text-sm sm:text-base">
+                Não vendemos nem partilhamos os seus dados pessoais com terceiros, exceto quando necessário para processar encomendas (parceiros de entrega) ou por exigência legal.
+              </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold mb-3">5. Partilha de Dados</h2>
-              <div className="space-y-2 text-sm">
-                <p>Os seus dados pessoais podem ser partilhados com:</p>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Prestadores de serviços de pagamento (Stripe)</li>
-                  <li>Empresas de entrega e logística</li>
-                  <li>Autoridades competentes quando legalmente exigido</li>
-                </ul>
-                <p>Não vendemos nem alugamos os seus dados pessoais a terceiros.</p>
-              </div>
+              <h2 className="text-lg sm:text-xl font-semibold text-primary mb-3">5. Os Seus Direitos</h2>
+              <p className="text-foreground leading-relaxed mb-3 text-sm sm:text-base">
+                Tem direito a:
+              </p>
+              <ul className="list-disc list-inside text-foreground space-y-1 text-sm sm:text-base">
+                <li>Aceder aos seus dados pessoais</li>
+                <li>Retificar dados incorretos</li>
+                <li>Apagar os seus dados</li>
+                <li>Restringir o processamento</li>
+                <li>Portabilidade dos dados</li>
+              </ul>
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold mb-3">6. Segurança dos Dados</h2>
-              <div className="space-y-2 text-sm">
-                <p>Implementamos medidas técnicas e organizacionais adequadas para proteger os seus dados pessoais contra:</p>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Acesso não autorizado</li>
-                  <li>Alteração, divulgação ou destruição não autorizada</li>
-                  <li>Perda acidental</li>
-                </ul>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-semibold mb-3">7. Alterações à Política</h2>
-              <div className="space-y-2 text-sm">
-                <p>Esta política pode ser atualizada periodicamente. As alterações significativas serão comunicadas através do nosso website ou por email.</p>
-                <p>Recomendamos que consulte regularmente esta página para se manter informado sobre como protegemos os seus dados.</p>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-semibold mb-3">8. Contacto</h2>
-              <div className="space-y-2 text-sm">
-                <p>Para questões relacionadas com esta política de privacidade ou para exercer os seus direitos, contacte-nos:</p>
-                <div className="bg-muted p-4 rounded-lg">
-                  <p><strong>Email:</strong> info@marisca.pt</p>
-                  <p><strong>Morada:</strong> A DEFINIR</p>
-                  <p><strong>Telefone:</strong> A DEFINIR</p>
-                </div>
-              </div>
+              <h2 className="text-lg sm:text-xl font-semibold text-primary mb-3">6. Contacto</h2>
+              <p className="text-foreground leading-relaxed text-sm sm:text-base">
+                Para questões sobre privacidade, contacte-nos através do email: 
+                <a href="mailto:info@marisca.pt" className="text-accent hover:underline ml-1">
+                  info@marisca.pt
+                </a>
+              </p>
             </section>
           </CardContent>
         </Card>
-      </div>
-      
+      </main>
+
+      {/* Footer */}
       <Footer />
     </div>
   );

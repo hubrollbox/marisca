@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CartItem, CartFooter } from "@/components/ui/cart-footer";
+import { CartFooter } from "@/components/ui/cart-footer";
 import { ProductCard } from "@/components/ui/product-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,13 @@ import { Search, User, Loader2, MapPin } from "lucide-react";
 import { MariscaLogo } from "@/components/MariscaLogo";
 import { Footer } from "@/components/Footer";
 import heroImage from "@/assets/hero-seafood.jpg";
+import { useCart } from "@/hooks/use-cart";
+import { Footer } from "@/components/Footer";
 
 export default function Index() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { items: cartItems, addItem, updateQuantity, removeItem } = useCart();
   const { toast } = useToast();
   const { data: products, isLoading } = useProducts();
   const { user } = useAuth();
@@ -25,41 +27,17 @@ export default function Index() {
   ) || [];
 
   const addToCart = (product: any, quantity: number, state: "CRU" | "COZIDO") => {
-    const existingItemIndex = cartItems.findIndex(
-      item => item.product.id === product.id && item.state === state
-    );
-
-    if (existingItemIndex >= 0) {
-      const updatedItems = [...cartItems];
-      updatedItems[existingItemIndex].quantity += quantity;
-      setCartItems(updatedItems);
-    } else {
-      setCartItems([...cartItems, { product, quantity, state }]);
-    }
-
-    toast({
-      title: "Adicionado ao carrinho",
-      description: `${quantity}x ${product.name} (${state})`,
-    });
+    addItem(product, quantity, state);
+    toast({ title: "Adicionado ao carrinho", description: `${quantity}x ${product.name} (${state})` });
   };
 
   const handleUpdateQuantity = (productId: string, state: "CRU" | "COZIDO", newQuantity: number) => {
-    setCartItems(cartItems.map(item =>
-      item.product.id === productId && item.state === state
-        ? { ...item, quantity: newQuantity }
-        : item
-    ));
+    updateQuantity(productId, state, newQuantity);
   };
 
   const handleRemoveItem = (productId: string, state: "CRU" | "COZIDO") => {
-    setCartItems(cartItems.filter(item =>
-      !(item.product.id === productId && item.state === state)
-    ));
-    
-    toast({
-      title: "Removido do carrinho",
-      description: "Item removido com sucesso",
-    });
+    removeItem(productId, state);
+    toast({ title: "Removido do carrinho", description: "Item removido com sucesso" });
   };
 
   const onCheckout = () => {
@@ -73,10 +51,10 @@ export default function Index() {
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <MariscaLogo size="sm" className="filter brightness-0 invert" />
+              <MariscaLogo size="sm" variant="white" />
               <div>
                 <h1 className="text-xl font-bold tracking-wide">Marisca</h1>
-                <p className="text-white/80 text-xs">A essência que vem do mar</p>
+                <p className="text-white/80 text-xs">Da maré para a sua mesa</p>
               </div>
             </div>
             <Button 
@@ -114,7 +92,7 @@ export default function Index() {
             Marisco Fresco da Costa Portuguesa
           </h2>
           <p className="text-white/80 text-sm">
-            Entregue em casa em menos de 2 horas
+            Da lota para a sua mesa, em horas
           </p>
         </div>
       </section>
@@ -160,6 +138,8 @@ export default function Index() {
         onRemoveItem={handleRemoveItem}
         onCheckout={onCheckout}
       />
+
+      <Footer />
       
       <Footer />
     </div>

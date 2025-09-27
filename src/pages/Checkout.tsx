@@ -8,21 +8,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CartItem } from "@/components/ui/cart-footer";
+import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { addressSchema, guestEmailSchema, checkoutNotesSchema } from "@/lib/validations";
 import { ArrowLeft, Clock, MapPin, CreditCard, Loader2 } from "lucide-react";
 
-interface CheckoutProps {
-  items: CartItem[];
-  onOrderComplete: () => void;
-}
-
-export default function Checkout({ items, onOrderComplete }: CheckoutProps) {
+export default function Checkout() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { items, clear } = useCart();
   const [loading, setLoading] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState({
@@ -35,10 +31,8 @@ export default function Checkout({ items, onOrderComplete }: CheckoutProps) {
   const [deliveryTimeSlot, setDeliveryTimeSlot] = useState("");
   const [notes, setNotes] = useState("");
 
-  // Get cart items from localStorage or props
-  const cartItems = items.length > 0 ? items : JSON.parse(localStorage.getItem('cart') || '[]');
-  const totalItems = cartItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0);
-  const subtotal = cartItems.reduce((sum: number, item: CartItem) => sum + (item.product.price * item.quantity), 0);
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const deliveryFee = subtotal >= 30 ? 0 : 4.99;
   const totalAmount = subtotal + deliveryFee;
 
@@ -88,7 +82,7 @@ export default function Checkout({ items, onOrderComplete }: CheckoutProps) {
 
       // Prepare payment request
       const paymentRequest = {
-        items: cartItems.map(item => ({
+        items: items.map(item => ({
           id: item.product.id,
           name: item.product.name,
           price: item.product.price,
@@ -119,7 +113,7 @@ export default function Checkout({ items, onOrderComplete }: CheckoutProps) {
       if (data?.url) {
         // Redirect to Stripe Checkout
         window.open(data.url, '_blank');
-        onOrderComplete();
+        clear();
       } else {
         toast({
           title: "Erro",

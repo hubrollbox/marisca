@@ -1,58 +1,60 @@
 import { Link } from "react-router-dom";
 import { MariscaLogo } from "@/components/MariscaLogo";
+import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
   return (
-    <footer className="bg-gradient-ocean text-white py-8 mt-12">
-      <div className="max-w-md mx-auto px-4">
-        <div className="text-center space-y-4">
-          {/* Logo */}
-          <div className="flex justify-center">
-            <MariscaLogo size="sm" className="filter brightness-0 invert" />
-          </div>
-          
-          {/* Brand */}
-          <div>
-            <h3 className="text-lg font-bold">Marisca</h3>
-            <p className="text-white/80 text-sm">A essência que vem do mar</p>
-          </div>
-
-          {/* Contact Info */}
-          <div className="text-sm text-white/70 space-y-1">
-            <p>Email: info@marisca.pt</p>
-            <p>Telefone: A DEFINIR</p>
-            <p>Morada: A DEFINIR</p>
-          </div>
-
-          {/* Legal Links */}
-          <div className="pt-4 border-t border-white/20">
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <Link 
-                to="/privacy-policy" 
-                className="text-white/80 hover:text-white transition-colors underline"
-              >
-                Política de Privacidade
-              </Link>
-              <Link 
-                to="/terms-conditions" 
-                className="text-white/80 hover:text-white transition-colors underline"
-              >
-                Termos e Condições
-              </Link>
-              <Link 
-                to="/cookie-policy" 
-                className="text-white/80 hover:text-white transition-colors underline"
-              >
-                Política de Cookies
-              </Link>
+    <footer className="bg-primary text-primary-foreground mt-auto">
+      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+        {/* Logo e Tagline */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6">
+          <div className="flex items-center gap-3">
+            <MariscaLogo size="sm" variant="white" />
+            <div>
+              <h3 className="font-bold text-sm sm:text-base">Marisca</h3>
+              <p className="text-xs sm:text-sm text-primary-foreground/80">Da maré para a sua mesa</p>
             </div>
           </div>
+        </div>
 
-          {/* Copyright */}
-          <div className="pt-4 border-t border-white/20 text-xs text-white/60">
-            <p>&copy; {new Date().getFullYear()} Marisca. Todos os direitos reservados.</p>
-            <p>Marisco fresco entregue com qualidade em Portugal.</p>
+        {/* Links Legais */}
+        <div className="space-y-4 mb-6">
+          <h4 className="text-sm font-semibold text-primary-foreground/90">Informação Legal</h4>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 text-sm">
+            <Link 
+              to="/politica-privacidade" 
+              className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+            >
+              Política de Privacidade
+            </Link>
+            <Link 
+              to="/termos-condicoes" 
+              className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+            >
+              Termos e Condições
+            </Link>
+            <Link 
+              to="/politica-cookies" 
+              className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+            >
+              Política de Cookies
+            </Link>
           </div>
+        </div>
+
+        <Separator className="bg-primary-foreground/20 mb-4" />
+
+        {/* Contactos */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-primary-foreground/70">
+          <p>© 2024 Marisca. Todos os direitos reservados.</p>
+          <p>
+            <a 
+              href="mailto:info@marisca.pt" 
+              className="hover:text-primary-foreground transition-colors underline sm:no-underline sm:hover:underline"
+            >
+              info@marisca.pt
+            </a>
+          </p>
         </div>
       </div>
     </footer>
