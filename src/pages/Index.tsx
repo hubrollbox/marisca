@@ -9,7 +9,6 @@ import { useProducts } from "@/hooks/use-products";
 import { useAuth } from "@/hooks/use-auth";
 import { Search, User, Loader2, MapPin } from "lucide-react";
 import { MariscaLogo } from "@/components/MariscaLogo";
-import { Footer } from "@/components/Footer";
 import heroImage from "@/assets/hero-seafood.jpg";
 import { useCart } from "@/hooks/use-cart";
 import { Footer } from "@/components/Footer";
@@ -139,8 +138,6 @@ export default function Index() {
         onCheckout={onCheckout}
       />
 
-      <Footer />
-      
       <Footer />
     </div>
   );
