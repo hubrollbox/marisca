@@ -49,10 +49,10 @@ export default function Index() {
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <MariscaLogo size="sm" className="filter brightness-0 invert" />
+              <MariscaLogo size="sm" variant="white" />
               <div>
                 <h1 className="text-xl font-bold tracking-wide">Marisca</h1>
-                <p className="text-white/80 text-xs">A essência que vem do mar</p>
+                <p className="text-white/80 text-xs">Da maré para a sua mesa</p>
               </div>
             </div>
             <Button 
@@ -90,7 +90,7 @@ export default function Index() {
             Marisco Fresco da Costa Portuguesa
           </h2>
           <p className="text-white/80 text-sm">
-            Entregue em casa em menos de 2 horas
+            Da lota para a sua mesa, em horas
           </p>
         </div>
       </section>

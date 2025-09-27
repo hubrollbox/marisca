@@ -123,7 +123,7 @@ export default function Auth() {
             <MariscaLogo size="lg" />
             <div className="text-left">
               <h1 className="text-2xl font-bold text-primary">Marisca</h1>
-              <p className="text-sm text-muted-foreground">A essência que vem do mar</p>
+              <p className="text-sm text-muted-foreground">Da maré para a sua mesa</p>
             </div>
           </div>
         </div>
