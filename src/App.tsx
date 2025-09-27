@@ -10,6 +10,9 @@ import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
+import CookiePolicy from "./pages/CookiePolicy";
 import { useEffect } from "react";
 import { CartProvider } from "@/hooks/use-cart";
 
@@ -47,6 +50,9 @@ const App = () => {
               <Route path="/admin" element={<Admin />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/politica-privacidade" element={<PrivacyPolicy />} />
+              <Route path="/termos-condicoes" element={<TermsConditions />} />
+              <Route path="/politica-cookies" element={<CookiePolicy />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

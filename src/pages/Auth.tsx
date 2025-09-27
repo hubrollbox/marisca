@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
 import { signUpSchema, signInSchema } from "@/lib/validations";
 import { MariscaLogo } from "@/components/MariscaLogo";
+import { Footer } from "@/components/Footer";
 import { Loader2 } from "lucide-react";
 
 export default function Auth() {
@@ -244,6 +245,8 @@ export default function Auth() {
           </CardContent>
         </Card>
       </div>
+      
+      <Footer />
     </div>
   );
 }

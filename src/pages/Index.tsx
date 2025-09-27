@@ -11,6 +11,7 @@ import { Search, User, Loader2, MapPin } from "lucide-react";
 import { MariscaLogo } from "@/components/MariscaLogo";
 import heroImage from "@/assets/hero-seafood.jpg";
 import { useCart } from "@/hooks/use-cart";
+import { Footer } from "@/components/Footer";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -136,6 +137,8 @@ export default function Index() {
         onRemoveItem={handleRemoveItem}
         onCheckout={onCheckout}
       />
+
+      <Footer />
     </div>
   );
 }
