@@ -9,7 +9,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
 import { signUpSchema, signInSchema } from "@/lib/validations";
 import { MariscaLogo } from "@/components/MariscaLogo";
-import { Footer } from "@/components/Footer";
 import { Loader2 } from "lucide-react";
 
 export default function Auth() {
@@ -117,136 +116,137 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-sand flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 text-primary mb-4">
-            <MariscaLogo size="lg" />
-            <div className="text-left">
-              <h1 className="text-2xl font-bold text-primary">Marisca</h1>
-              <p className="text-sm text-muted-foreground">Da maré para a sua mesa</p>
+    <div className="min-h-screen bg-gradient-sand flex flex-col">
+      {/* Main content */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-3 text-primary mb-4">
+              <MariscaLogo size="lg" />
+              <div className="text-left">
+                <h1 className="text-2xl font-bold text-primary">Marisca</h1>
+                <p className="text-sm text-muted-foreground">Da maré para a sua mesa</p>
+              </div>
             </div>
           </div>
+
+          <Card className="shadow-elegant border-border">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl text-center text-primary">Bem-vindo</CardTitle>
+              <CardDescription className="text-center text-muted-foreground">
+                Entre na sua conta ou crie uma nova para continuar
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="login" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="login">Entrar</TabsTrigger>
+                  <TabsTrigger value="register">Registar</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="login">
+                  <form onSubmit={handleSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Palavra-passe</Label>
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        placeholder="••••••••"
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full bg-gradient-coral hover:opacity-90"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          A entrar...
+                        </>
+                      ) : (
+                        "Entrar"
+                      )}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="register">
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">Nome</Label>
+                        <Input
+                          id="firstName"
+                          name="firstName"
+                          placeholder="João"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Apelido</Label>
+                        <Input
+                          id="lastName"
+                          name="lastName"
+                          placeholder="Silva"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Palavra-passe</Label>
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        placeholder="••••••••"
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full bg-gradient-coral hover:opacity-90"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          A criar conta...
+                        </>
+                      ) : (
+                        "Criar Conta"
+                      )}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
-
-        <Card className="shadow-elegant border-border">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center text-primary">Bem-vindo</CardTitle>
-            <CardDescription className="text-center text-muted-foreground">
-              Entre na sua conta ou crie uma nova para continuar
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="register">Registar</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="login">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Palavra-passe</Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-coral hover:opacity-90"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        A entrar...
-                      </>
-                    ) : (
-                      "Entrar"
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="register">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">Nome</Label>
-                      <Input
-                        id="firstName"
-                        name="firstName"
-                        placeholder="João"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Apelido</Label>
-                      <Input
-                        id="lastName"
-                        name="lastName"
-                        placeholder="Silva"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Palavra-passe</Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-coral hover:opacity-90"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        A criar conta...
-                      </>
-                    ) : (
-                      "Criar Conta"
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
       </div>
-      
-      <Footer />
     </div>
   );
 }

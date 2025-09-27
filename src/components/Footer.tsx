@@ -4,21 +4,23 @@ import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
   return (
-    <footer className="bg-primary text-primary-foreground">
-      <div className="max-w-md mx-auto px-4 py-8">
+    <footer className="bg-primary text-primary-foreground mt-auto">
+      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
         {/* Logo e Tagline */}
-        <div className="flex items-center gap-3 mb-6">
-          <MariscaLogo size="sm" variant="white" />
-          <div>
-            <h3 className="font-bold">Marisca</h3>
-            <p className="text-sm text-primary-foreground/80">Da maré para a sua mesa</p>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6">
+          <div className="flex items-center gap-3">
+            <MariscaLogo size="sm" variant="white" />
+            <div>
+              <h3 className="font-bold text-sm sm:text-base">Marisca</h3>
+              <p className="text-xs sm:text-sm text-primary-foreground/80">Da maré para a sua mesa</p>
+            </div>
           </div>
         </div>
 
         {/* Links Legais */}
         <div className="space-y-4 mb-6">
           <h4 className="text-sm font-semibold text-primary-foreground/90">Informação Legal</h4>
-          <div className="grid grid-cols-1 gap-2 text-sm">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 text-sm">
             <Link 
               to="/politica-privacidade" 
               className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
@@ -43,10 +45,13 @@ export function Footer() {
         <Separator className="bg-primary-foreground/20 mb-4" />
 
         {/* Contactos */}
-        <div className="text-center text-sm text-primary-foreground/70">
-          <p className="mb-1">© 2024 Marisca. Todos os direitos reservados.</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-primary-foreground/70">
+          <p>© 2024 Marisca. Todos os direitos reservados.</p>
           <p>
-            <a href="mailto:info@marisca.pt" className="hover:text-primary-foreground transition-colors">
+            <a 
+              href="mailto:info@marisca.pt" 
+              className="hover:text-primary-foreground transition-colors underline sm:no-underline sm:hover:underline"
+            >
               info@marisca.pt
             </a>
           </p>
