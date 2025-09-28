@@ -13,6 +13,12 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import CookiePolicy from "./pages/CookiePolicy";
 import NotFound from "./pages/NotFound";
+import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
+import Returns from "./pages/Returns";
 import { useEffect } from "react";
 import { CartProvider } from "@/hooks/use-cart";
 
@@ -50,6 +56,12 @@ const App = () => {
               <Route path="/admin" element={<Admin />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/produtos" element={<Products />} />
+              <Route path="/produtos/:id" element={<ProductDetail />} />
+              <Route path="/sobre" element={<About />} />
+              <Route path="/contactos" element={<Contact />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/devolucoes" element={<Returns />} />
               <Route path="/politica-privacidade" element={<PrivacyPolicy />} />
               <Route path="/termos-condicoes" element={<TermsConditions />} />
               <Route path="/politica-cookies" element={<CookiePolicy />} />

@@ -66,7 +66,7 @@ export default function Index() {
             </Button>
           </div>
           
-          <div className="relative">
+          <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Procurar marisco..."
@@ -75,6 +75,18 @@ export default function Index() {
               className="pl-10 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/60"
             />
           </div>
+          
+          <nav className="flex justify-center gap-4 text-xs">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/produtos")} className="text-white/80 hover:text-white hover:bg-white/10 h-auto p-2">
+              Produtos
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/sobre")} className="text-white/80 hover:text-white hover:bg-white/10 h-auto p-2">
+              Sobre
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/contactos")} className="text-white/80 hover:text-white hover:bg-white/10 h-auto p-2">
+              Contactos
+            </Button>
+          </nav>
         </div>
       </header>
 
