@@ -240,8 +240,15 @@ export default function Checkout() {
               
               {!user && (
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" name="email" type="email" required />
+                  <Label htmlFor="guestEmail">Email</Label>
+                  <Input 
+                    id="guestEmail" 
+                    name="guestEmail" 
+                    type="email" 
+                    value={guestEmail}
+                    onChange={(e) => setGuestEmail(e.target.value)}
+                    required 
+                  />
                 </div>
               )}
 

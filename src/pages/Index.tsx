@@ -77,14 +77,14 @@ export default function Index() {
           </div>
           
           <nav className="flex justify-center gap-4 text-xs">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/produtos")} className="text-white/80 hover:text-white hover:bg-white/10 h-auto p-2">
-              Produtos
-            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate("/sobre")} className="text-white/80 hover:text-white hover:bg-white/10 h-auto p-2">
               Sobre
             </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate("/contactos")} className="text-white/80 hover:text-white hover:bg-white/10 h-auto p-2">
               Contactos
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/faq")} className="text-white/80 hover:text-white hover:bg-white/10 h-auto p-2">
+              FAQ
             </Button>
           </nav>
         </div>
