@@ -1,23 +1,23 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, User, ShoppingCart } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProducts } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
-import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { MariscaLogo } from "@/components/MariscaLogo";
+import { Header } from "@/components/Header";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CartFooter } from "@/components/ui/cart-footer";
 import { Footer } from "@/components/Footer";
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { data: products, isLoading } = useProducts();
   const { items, addItem, updateQuantity, removeItem } = useCart();
-  const { user } = useAuth();
   const { toast } = useToast();
 
   const [selectedState, setSelectedState] = useState<"CRU" | "COZIDO">("CRU");
@@ -44,7 +44,7 @@ const ProductDetail = () => {
   };
 
   const onCheckout = () => {
-    window.location.href = "/checkout";
+    navigate("/checkout");
   };
 
   if (isLoading) {
@@ -63,9 +63,9 @@ const ProductDetail = () => {
           <p className="text-muted-foreground mb-4">
             O produto que procura não existe ou foi removido
           </p>
-          <Link to="/produtos">
-            <Button>Ver todos os produtos</Button>
-          </Link>
+          <Button onClick={() => navigate("/produtos")}>
+            Ver todos os produtos
+          </Button>
         </Card>
       </div>
     );
@@ -73,37 +73,15 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link to="/produtos">
-                <Button variant="ghost" size="icon">
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
-              <MariscaLogo className="h-8" />
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {user ? (
-                <Link to="/dashboard">
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link to="/auth">
-                  <Button variant="outline" size="sm">Login</Button>
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
-      <main className="container mx-auto px-4 py-8 pb-32">
+      <main className="container mx-auto px-4 pb-32">
+        <Breadcrumbs 
+          items={[
+            { label: "Produtos", path: "/produtos" },
+            { label: product.name }
+          ]}
+        />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Product Image */}
           <div className="space-y-4">

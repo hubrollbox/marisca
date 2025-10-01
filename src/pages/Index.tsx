@@ -2,13 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CartFooter } from "@/components/ui/cart-footer";
 import { ProductCard } from "@/components/ui/product-card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/hooks/use-products";
-import { useAuth } from "@/hooks/use-auth";
-import { Search, User, Loader2, MapPin } from "lucide-react";
-import { MariscaLogo } from "@/components/MariscaLogo";
+import { Loader2 } from "lucide-react";
+import { Header } from "@/components/Header";
 import heroImage from "@/assets/hero-seafood.jpg";
 import { useCart } from "@/hooks/use-cart";
 import { Footer } from "@/components/Footer";
@@ -19,7 +16,6 @@ export default function Index() {
   const { items: cartItems, addItem, updateQuantity, removeItem } = useCart();
   const { toast } = useToast();
   const { data: products, isLoading } = useProducts();
-  const { user } = useAuth();
 
   const filteredProducts = products?.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -45,50 +41,11 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-gradient-sand">
-      {/* Header */}
-      <header className="bg-gradient-ocean text-white sticky top-0 z-40 shadow-elegant">
-        <div className="max-w-md mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <MariscaLogo size="sm" variant="white" />
-              <div>
-                <h1 className="text-xl font-bold tracking-wide">Marisca</h1>
-                <p className="text-white/80 text-xs">Da maré para a sua mesa</p>
-              </div>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => user ? navigate("/dashboard") : navigate("/auth")}
-              className="hover:bg-white/10"
-            >
-              <User className="h-5 w-5" />
-            </Button>
-          </div>
-          
-          <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Procurar marisco..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/60"
-            />
-          </div>
-          
-          <nav className="flex justify-center gap-4 text-xs">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/sobre")} className="text-white/80 hover:text-white hover:bg-white/10 h-auto p-2">
-              Sobre
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/contactos")} className="text-white/80 hover:text-white hover:bg-white/10 h-auto p-2">
-              Contactos
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/faq")} className="text-white/80 hover:text-white hover:bg-white/10 h-auto p-2">
-              FAQ
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <Header 
+        showSearch 
+        searchTerm={searchTerm} 
+        onSearchChange={setSearchTerm}
+      />
 
       {/* Hero Section */}
       <section className="relative h-48 overflow-hidden">
