@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, Package, Clock, CheckCircle, Truck, User, LogOut, Loader2 } from "lucide-react";
+import { AddressManager } from "@/components/AddressManager";
 
 interface Order {
   id: string;
@@ -165,6 +166,9 @@ export default function Dashboard() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Address Manager */}
+        <AddressManager />
 
         {/* Orders */}
         <Card>

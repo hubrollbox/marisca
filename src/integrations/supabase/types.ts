@@ -146,6 +146,7 @@ export type Database = {
       products: {
         Row: {
           available: boolean
+          category: string | null
           created_at: string
           description: string | null
           id: string
@@ -153,6 +154,7 @@ export type Database = {
           name: string
           prep_time: string | null
           price: number
+          slug: string | null
           states: Database["public"]["Enums"]["product_state"][]
           stock: number | null
           updated_at: string
@@ -160,6 +162,7 @@ export type Database = {
         }
         Insert: {
           available?: boolean
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -167,6 +170,7 @@ export type Database = {
           name: string
           prep_time?: string | null
           price: number
+          slug?: string | null
           states?: Database["public"]["Enums"]["product_state"][]
           stock?: number | null
           updated_at?: string
@@ -174,6 +178,7 @@ export type Database = {
         }
         Update: {
           available?: boolean
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -181,6 +186,7 @@ export type Database = {
           name?: string
           prep_time?: string | null
           price?: number
+          slug?: string | null
           states?: Database["public"]["Enums"]["product_state"][]
           stock?: number | null
           updated_at?: string

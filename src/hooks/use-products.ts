@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Product {
   id: string;
   name: string;
+  slug?: string;
+  category?: string;
   price: number;
   image_url?: string;
   weight?: string;
@@ -29,6 +31,8 @@ export function useProducts() {
       return data.map((product): Product => ({
         id: product.id,
         name: product.name,
+        slug: product.slug,
+        category: product.category,
         price: parseFloat(product.price.toString()),
         image_url: product.image_url,
         weight: product.weight,
