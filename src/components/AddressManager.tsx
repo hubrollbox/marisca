@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 interface Address {
   id: string;
+  name: string;
   street: string;
   city: string;
   postal_code: string;
@@ -25,6 +26,7 @@ export const AddressManager = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [formData, setFormData] = useState({
+    name: "",
     street: "",
     city: "",
     postal_code: "",
@@ -40,7 +42,7 @@ export const AddressManager = () => {
   const fetchAddresses = async () => {
     try {
       const { data, error } = await supabase
-        .from("delivery_addresses")
+        .from("addresses")
         .select("*")
         .eq("user_id", user?.id)
         .order("is_default", { ascending: false });
@@ -69,7 +71,7 @@ export const AddressManager = () => {
 
       if (editingAddress) {
         const { error } = await supabase
-          .from("delivery_addresses")
+          .from("addresses")
           .update(addressData)
           .eq("id", editingAddress.id);
 
@@ -77,7 +79,7 @@ export const AddressManager = () => {
         toast({ title: "Endereço atualizado com sucesso" });
       } else {
         const { error } = await supabase
-          .from("delivery_addresses")
+          .from("addresses")
           .insert(addressData);
 
         if (error) throw error;
@@ -86,7 +88,7 @@ export const AddressManager = () => {
 
       setDialogOpen(false);
       setEditingAddress(null);
-      setFormData({ street: "", city: "", postal_code: "", is_default: false });
+      setFormData({ name: "", street: "", city: "", postal_code: "", is_default: false });
       fetchAddresses();
     } catch (error: any) {
       toast({
@@ -100,7 +102,7 @@ export const AddressManager = () => {
   const handleDelete = async (id: string) => {
     try {
       const { error } = await supabase
-        .from("delivery_addresses")
+        .from("addresses")
         .delete()
         .eq("id", id);
 
@@ -119,6 +121,7 @@ export const AddressManager = () => {
   const openEditDialog = (address: Address) => {
     setEditingAddress(address);
     setFormData({
+      name: address.name,
       street: address.street,
       city: address.city,
       postal_code: address.postal_code,
@@ -129,7 +132,7 @@ export const AddressManager = () => {
 
   const openNewDialog = () => {
     setEditingAddress(null);
-    setFormData({ street: "", city: "", postal_code: "", is_default: false });
+    setFormData({ name: "", street: "", city: "", postal_code: "", is_default: false });
     setDialogOpen(true);
   };
 
@@ -159,6 +162,16 @@ export const AddressManager = () => {
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Nome do Endereço</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Ex: Casa, Trabalho"
+                    required
+                  />
+                </div>
                 <div>
                   <Label htmlFor="street">Rua e Número</Label>
                   <Input
@@ -208,7 +221,8 @@ export const AddressManager = () => {
                 className="flex items-start justify-between p-3 border rounded-lg"
               >
                 <div className="flex-1">
-                  <p className="font-medium">{address.street}</p>
+                  <p className="font-medium">{address.name}</p>
+                  <p className="text-sm">{address.street}</p>
                   <p className="text-sm text-muted-foreground">
                     {address.city}, {address.postal_code}
                   </p>
