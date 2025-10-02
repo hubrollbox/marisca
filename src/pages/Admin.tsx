@@ -21,6 +21,8 @@ import {
 interface Product {
   id: string;
   name: string;
+  slug?: string;
+  category?: string;
   description?: string;
   price: number;
   weight?: string;
@@ -63,12 +65,14 @@ export default function Admin() {
   const [loadingData, setLoadingData] = useState(true);
   const [newProduct, setNewProduct] = useState({
     name: "",
+    category: "",
     description: "",
     price: "",
     weight: "",
     states: ["CRU"] as Array<"CRU" | "COZIDO">,
     stock: "",
-    prep_time: ""
+    prep_time: "",
+    image_url: ""
   });
 
   useEffect(() => {
@@ -133,14 +137,25 @@ export default function Admin() {
         stock: parseInt(newProduct.stock) || 0,
       });
       
+      // Generate slug from name
+      const slug = validatedData.name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      
       const { error } = await supabase.from("products").insert({
         name: validatedData.name,
+        slug: slug,
+        category: newProduct.category || null,
         description: validatedData.description,
         price: validatedData.price,
         weight: validatedData.weight,
         prep_time: validatedData.prep_time,
         stock: validatedData.stock || 0,
         states: newProduct.states,
+        image_url: newProduct.image_url || null,
         available: true
       });
 
@@ -153,12 +168,14 @@ export default function Admin() {
 
       setNewProduct({
         name: "",
+        category: "",
         description: "",
         price: "",
         weight: "",
         states: ["CRU"],
         stock: "",
-        prep_time: ""
+        prep_time: "",
+        image_url: ""
       });
 
       fetchData();
@@ -447,6 +464,20 @@ export default function Admin() {
                           value={newProduct.name}
                           onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
                         />
+                        <Select
+                          value={newProduct.category}
+                          onValueChange={(value) => setNewProduct({...newProduct, category: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="crustaceos">Crustáceos</SelectItem>
+                            <SelectItem value="moluscos">Moluscos</SelectItem>
+                            <SelectItem value="bivalves">Bivalves</SelectItem>
+                            <SelectItem value="peixes">Peixes</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Textarea
                           placeholder="Descrição"
                           value={newProduct.description}
@@ -474,6 +505,11 @@ export default function Admin() {
                           placeholder="Stock"
                           value={newProduct.stock}
                           onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
+                        />
+                        <Input
+                          placeholder="URL da imagem"
+                          value={newProduct.image_url}
+                          onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})}
                         />
                         <Button onClick={handleCreateProduct} className="w-full">
                           Criar Produto
