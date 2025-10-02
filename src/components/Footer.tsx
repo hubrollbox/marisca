@@ -6,15 +6,9 @@ export function Footer() {
   return (
     <footer className="bg-primary text-primary-foreground mt-auto">
       <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
-        {/* Logo e Tagline */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6">
-          <div className="flex items-center gap-3">
-            <MariscaLogo size="sm" variant="white" />
-            <div>
-              <h3 className="font-bold text-sm sm:text-base">Marisca</h3>
-              <p className="text-xs sm:text-sm text-primary-foreground/80">Da maré para a sua mesa</p>
-            </div>
-          </div>
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <MariscaLogo size="sm" variant="white" />
         </div>
 
         {/* Links Legais */}

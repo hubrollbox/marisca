@@ -36,12 +36,8 @@ export const Header = ({
     <header className="sticky top-0 z-50 bg-gradient-ocean text-white shadow-elegant">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between mb-4">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center">
             <MariscaLogo size="sm" variant="white" />
-            <div>
-              <h1 className="text-xl font-bold tracking-wide">Marisca</h1>
-              <p className="text-white/80 text-xs">Da maré para a sua mesa</p>
-            </div>
           </Link>
 
           {/* Desktop Navigation */}
