@@ -14,14 +14,19 @@ import { Footer } from "@/components/Footer";
 const Products = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { data: products, isLoading } = useProducts();
   const { items, addItem, updateQuantity, removeItem } = useCart();
   const { toast } = useToast();
 
-  const filteredProducts = products?.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const categories = ["all", "Crustáceos", "Bivalves", "Moluscos", "Peixes"];
+
+  const filteredProducts = products?.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  }) || [];
 
   const addToCart = (product: any, quantity: number, state: "CRU" | "COZIDO") => {
     addItem(product, quantity, state);
@@ -74,6 +79,23 @@ const Products = () => {
           </p>
         </div>
 
+        {/* Category Filter */}
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
+                selectedCategory === category
+                  ? "bg-primary text-white"
+                  : "bg-muted hover:bg-muted/80"
+              }`}
+            >
+              {category === "all" ? "Todos" : category}
+            </button>
+          ))}
+        </div>
+
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <Card className="p-8 text-center">
@@ -87,7 +109,18 @@ const Products = () => {
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
-                product={product}
+                product={{
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  image: product.image_url || "/placeholder.svg",
+                  weight: product.weight || "",
+                  available: product.available,
+                  states: product.states,
+                  prepTime: product.prep_time || "",
+                  description: product.description || "",
+                  stock: product.stock,
+                }}
                 onAddToCart={addToCart}
               />
             ))}
