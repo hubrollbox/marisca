@@ -50,6 +50,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               src={product.image_url || product.image || "/placeholder.svg"} 
               alt={product.name}
               className="w-full h-full object-cover"
+              loading="lazy"
             />
             {product.available && (
               <Badge 
@@ -85,6 +86,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               src={product.image_url || product.image || "/placeholder.svg"} 
               alt={product.name}
               className="w-full h-full object-cover"
+              loading="lazy"
             />
           </div>
           

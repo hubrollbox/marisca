@@ -10,6 +10,8 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ProductCard } from "@/components/ui/product-card";
 import { CartFooter } from "@/components/ui/cart-footer";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
+import { generateBreadcrumbSchema } from "@/utils/schema-markup";
 
 const Products = () => {
   const navigate = useNavigate();
@@ -58,6 +60,16 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Produtos de Marisco Fresco"
+        description="Descubra a nossa seleção de marisco fresco da costa portuguesa. Lagosta, camarão, amêijoas, percebes e muito mais."
+        canonical="https://marisca.pt/produtos"
+        schemaMarkup={generateBreadcrumbSchema([
+          { name: "Início", url: "/" },
+          { name: "Produtos", url: "/produtos" }
+        ])}
+      />
+      
       <Header 
         showSearch 
         searchTerm={searchTerm} 
@@ -72,15 +84,15 @@ const Products = () => {
         />
 
         {/* Page Header */}
-        <div className="mb-8">
+        <header className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Nossos Produtos</h1>
           <p className="text-muted-foreground">
             Marisco fresco da lota para a sua mesa, em horas
           </p>
-        </div>
+        </header>
 
         {/* Category Filter */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
+        <nav className="flex gap-2 mb-8 overflow-x-auto pb-2" aria-label="Filtros de categoria">
           {categories.map((category) => (
             <button
               key={category}
@@ -90,11 +102,12 @@ const Products = () => {
                   ? "bg-primary text-white"
                   : "bg-muted hover:bg-muted/80"
               }`}
+              aria-pressed={selectedCategory === category}
             >
               {category === "all" ? "Todos" : category}
             </button>
           ))}
-        </div>
+        </nav>
 
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (

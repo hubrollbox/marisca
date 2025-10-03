@@ -9,6 +9,9 @@ import { Header } from "@/components/Header";
 import heroImage from "@/assets/hero-seafood.jpg";
 import { useCart } from "@/hooks/use-cart";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
+import { Testimonials } from "@/components/Testimonials";
+import { generateWebsiteSchema } from "@/utils/schema-markup";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -41,6 +44,13 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-gradient-sand">
+      <SEO
+        title="Marisca - Da Maré para a Sua Mesa"
+        description="Marisco fresco da lota para a sua mesa em poucas horas. Frescura, autenticidade e qualidade diretamente do mar."
+        canonical="https://marisca.pt"
+        schemaMarkup={generateWebsiteSchema()}
+      />
+      
       <Header 
         showSearch 
         searchTerm={searchTerm} 
@@ -51,14 +61,15 @@ export default function Index() {
       <section className="relative h-48 overflow-hidden">
         <img 
           src={heroImage} 
-          alt="Marisco fresco"
+          alt="Marisco fresco da costa portuguesa"
           className="w-full h-full object-cover"
+          loading="eager"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
-          <h2 className="text-xl font-bold text-white mb-1">
+          <h1 className="text-xl font-bold text-white mb-1">
             Marisco Fresco da Costa Portuguesa
-          </h2>
+          </h1>
           <p className="text-white/80 text-sm">
             Da lota para a sua mesa, em horas
           </p>
@@ -110,6 +121,8 @@ export default function Index() {
           )}
         </div>
       </main>
+
+      <Testimonials />
 
       <CartFooter
         items={cartItems}

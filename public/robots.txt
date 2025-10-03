@@ -1,14 +1,25 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# Marisca - Robots.txt
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://marisca.pt/sitemap.xml
+
+# Disallow admin and private pages
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /checkout
+Disallow: /payment-success
+
+# Allow crawling of product pages and public pages
+Allow: /produtos
+Allow: /sobre
+Allow: /contactos
+Allow: /faq
+
+# Crawl delay for slower bots
+User-agent: Bingbot
+Crawl-delay: 1
+
+User-agent: Slurp
+Crawl-delay: 1
