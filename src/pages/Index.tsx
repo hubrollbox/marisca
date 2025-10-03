@@ -92,7 +92,18 @@ export default function Index() {
             filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
-                product={product}
+                product={{
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  image: product.image_url || "/placeholder.svg",
+                  weight: product.weight || "",
+                  available: product.available,
+                  states: product.states,
+                  prepTime: product.prep_time || "",
+                  description: product.description || "",
+                  stock: product.stock,
+                }}
                 onAddToCart={addToCart}
               />
             ))
