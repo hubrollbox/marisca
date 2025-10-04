@@ -47,6 +47,68 @@ export type Database = {
         }
         Relationships: []
       }
+      complaints: {
+        Row: {
+          admin_notes: string | null
+          complaint_number: string
+          complaint_type: string
+          created_at: string | null
+          description: string
+          email: string
+          id: string
+          name: string
+          order_id: string | null
+          phone: string | null
+          resolved_at: string | null
+          status: string | null
+          submitted_at: string | null
+          submitted_to_authority: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          complaint_number: string
+          complaint_type: string
+          created_at?: string | null
+          description: string
+          email: string
+          id?: string
+          name: string
+          order_id?: string | null
+          phone?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          submitted_to_authority?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          complaint_number?: string
+          complaint_type?: string
+          created_at?: string | null
+          description?: string
+          email?: string
+          id?: string
+          name?: string
+          order_id?: string | null
+          phone?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          submitted_to_authority?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaints_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -283,6 +345,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_complaint_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
