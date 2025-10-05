@@ -345,6 +345,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decrease_product_stock: {
+        Args: { product_id: string; quantity: number }
+        Returns: undefined
+      }
       generate_complaint_number: {
         Args: Record<PropertyKey, never>
         Returns: string

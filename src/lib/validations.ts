@@ -56,8 +56,32 @@ export const paymentRequestSchema = z.object({
   guestEmail: z.string().trim().email("Email inválido").max(255).optional(),
 });
 
+// Partnership validation schema
+export const partnershipSchema = z.object({
+  name: z.string().trim().min(1, "Nome é obrigatório").max(100, "Nome deve ter no máximo 100 caracteres"),
+  email: z.string().trim().email("Email inválido").max(255, "Email deve ter no máximo 255 caracteres"),
+  partnershipType: z.enum(["gastronomia", "desporto", "cultura", "outro"], {
+    errorMap: () => ({ message: "Tipo de parceria inválido" })
+  }),
+  message: z.string().trim().min(10, "Mensagem deve ter pelo menos 10 caracteres").max(1000, "Mensagem deve ter no máximo 1000 caracteres"),
+});
+
+// Complaint validation schema
+export const complaintSchema = z.object({
+  name: z.string().trim().min(1, "Nome é obrigatório").max(100, "Nome deve ter no máximo 100 caracteres"),
+  email: z.string().trim().email("Email inválido").max(255, "Email deve ter no máximo 255 caracteres"),
+  phone: z.string().trim().regex(/^[0-9\s\+\-\(\)]+$/, "Telefone inválido").min(9, "Telefone deve ter pelo menos 9 dígitos").max(20, "Telefone deve ter no máximo 20 caracteres").optional(),
+  complaintType: z.enum(["produto", "entrega", "atendimento", "outro"], {
+    errorMap: () => ({ message: "Tipo de reclamação inválido" })
+  }),
+  description: z.string().trim().min(20, "Descrição deve ter pelo menos 20 caracteres").max(2000, "Descrição deve ter no máximo 2000 caracteres"),
+  orderId: z.string().uuid("ID de encomenda inválido").optional(),
+});
+
 export type SignUpFormData = z.infer<typeof signUpSchema>;
 export type SignInFormData = z.infer<typeof signInSchema>;
 export type AddressFormData = z.infer<typeof addressSchema>;
 export type ProductFormData = z.infer<typeof productSchema>;
 export type PaymentRequestData = z.infer<typeof paymentRequestSchema>;
+export type PartnershipFormData = z.infer<typeof partnershipSchema>;
+export type ComplaintFormData = z.infer<typeof complaintSchema>;

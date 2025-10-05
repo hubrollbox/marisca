@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { lazy, Suspense, useEffect } from "react";
 import { CartProvider } from "@/hooks/use-cart";
+import { CookieBanner } from "@/components/CookieBanner";
 import Index from "./pages/Index";
 
 // Lazy load pages for better performance
@@ -24,6 +25,9 @@ const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Returns = lazy(() => import("./pages/Returns"));
+const Partnerships = lazy(() => import("./pages/Partnerships"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
+const ComplaintsBook = lazy(() => import("./pages/ComplaintsBook"));
 
 // Loading component
 const PageLoader = () => (
@@ -74,6 +78,9 @@ const App = () => {
                   <Route path="/contactos" element={<Contact />} />
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/devolucoes" element={<Returns />} />
+                  <Route path="/parcerias" element={<Partnerships />} />
+                  <Route path="/como-funciona" element={<HowItWorks />} />
+                  <Route path="/livro-reclamacoes" element={<ComplaintsBook />} />
                   <Route path="/politica-privacidade" element={<PrivacyPolicy />} />
                   <Route path="/termos-condicoes" element={<TermsConditions />} />
                   <Route path="/politica-cookies" element={<CookiePolicy />} />
@@ -81,6 +88,7 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              <CookieBanner />
             </BrowserRouter>
           </CartProvider>
         </TooltipProvider>

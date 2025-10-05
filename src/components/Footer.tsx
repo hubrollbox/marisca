@@ -33,6 +33,12 @@ export function Footer() {
             >
               Política de Cookies
             </Link>
+            <Link 
+              to="/livro-reclamacoes" 
+              className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+            >
+              Livro de Reclamações
+            </Link>
           </div>
         </div>
 
@@ -41,14 +47,20 @@ export function Footer() {
         {/* Contactos */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-primary-foreground/70">
           <p>© 2024 Marisca. Todos os direitos reservados.</p>
-          <p>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <a 
+              href="tel:+351220145169" 
+              className="hover:text-primary-foreground transition-colors"
+            >
+              +351 220 145 169
+            </a>
             <a 
               href="mailto:info@marisca.pt" 
               className="hover:text-primary-foreground transition-colors underline sm:no-underline sm:hover:underline"
             >
               info@marisca.pt
             </a>
-          </p>
+          </div>
         </div>
       </div>
     </footer>

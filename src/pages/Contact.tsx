@@ -113,10 +113,10 @@ const Contact = () => {
                   Horário: Segunda a Sexta, 9h às 18h
                 </p>
                 <a 
-                  href="tel:+351220000000" 
+                  href="tel:+351220145169" 
                   className="text-primary hover:underline font-medium"
                 >
-                  +351 220 000 000
+                  +351 220 145 169
                 </a>
               </CardContent>
             </Card>
@@ -129,7 +129,10 @@ const Contact = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground mb-2">
+                  Edifício Diplomata, Matosinhos
+                </p>
+                <p className="text-sm text-muted-foreground">
                   Servimos as áreas do Porto e Lisboa com entregas no mesmo dia.
                 </p>
               </CardContent>

@@ -27,6 +27,7 @@ export const Header = ({
   const navigationLinks = [
     { label: "Início", path: "/" },
     { label: "Produtos", path: "/produtos" },
+    { label: "Como Funciona", path: "/como-funciona" },
     { label: "Sobre", path: "/sobre" },
     { label: "Contactos", path: "/contactos" },
     { label: "FAQ", path: "/faq" },
