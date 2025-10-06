@@ -86,14 +86,27 @@ const ProductDetail = () => {
           {/* Product Image */}
           <div className="space-y-4">
             <div className="aspect-square rounded-lg overflow-hidden bg-muted">
-              <img
-                src={product.image_url || "/placeholder.svg"}
-                alt={product.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = "/placeholder.svg";
-                }}
-              />
+              {product.image_url ? (
+                <img
+                  src={product.image_url}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.svg";
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-center p-8">
+                    <p className="text-muted-foreground text-lg font-medium">
+                      Foto em breve
+                    </p>
+                    <p className="text-muted-foreground text-sm mt-2">
+                      Produto disponível para encomenda
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

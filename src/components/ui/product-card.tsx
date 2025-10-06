@@ -58,12 +58,22 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           !product.available && "opacity-60"
         )}>
           <div className="aspect-square relative">
-            <img 
-              src={product.image_url || product.image || "/placeholder.svg"} 
-              alt={product.name}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+            {product.image_url || product.image ? (
+              <img 
+                src={product.image_url || product.image || "/placeholder.svg"} 
+                alt={product.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <div className="text-center p-4">
+                  <p className="text-muted-foreground text-sm font-medium">
+                    Foto em breve
+                  </p>
+                </div>
+              </div>
+            )}
             {product.available && (
               <Badge 
                 variant="secondary" 
@@ -94,12 +104,22 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       <DialogContent className="sm:max-w-md mx-4">
         <div className="space-y-4">
           <div className="aspect-video relative rounded-lg overflow-hidden">
-            <img 
-              src={product.image_url || product.image || "/placeholder.svg"} 
-              alt={product.name}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+            {product.image_url || product.image ? (
+              <img 
+                src={product.image_url || product.image || "/placeholder.svg"} 
+                alt={product.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <div className="text-center p-4">
+                  <p className="text-muted-foreground text-sm font-medium">
+                    Foto em breve
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
           
           <div className="space-y-3">
