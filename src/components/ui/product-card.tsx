@@ -14,22 +14,34 @@ export interface Product {
   image_url?: string;
   weight?: string;
   available: boolean;
-  states: Array<"CRU" | "COZIDO">;
+  states: Array<"CRU" | "COZIDO" | "GRELHADO">;
   prepTime?: string;
   prep_time?: string;
   description?: string;
   stock?: number;
+  category?: string;
+  slug?: string;
+  scientific_name?: string;
+  presentation?: string;
+  average_weight?: string;
+  ideal_conservation?: string;
+  quality_checklist?: string;
+  closed_season?: string;
+  origin?: string;
+  legal_notes?: string;
+  sensory_description?: string;
+  consumption_suggestion?: string;
 }
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart: (product: Product, quantity: number, state: "CRU" | "COZIDO") => void;
+  onAddToCart: (product: Product, quantity: number, state: "CRU" | "COZIDO" | "GRELHADO") => void;
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [selectedState, setSelectedState] = useState<"CRU" | "COZIDO">(product.states[0]);
+  const [selectedState, setSelectedState] = useState<"CRU" | "COZIDO" | "GRELHADO">(product.states[0]);
 
   const handleAddToCart = () => {
     onAddToCart(product, quantity, selectedState);

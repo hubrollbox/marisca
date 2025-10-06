@@ -8,13 +8,13 @@ import { Product } from "@/components/ui/product-card";
 export interface CartItem {
   product: Product;
   quantity: number;
-  state: "CRU" | "COZIDO";
+  state: "CRU" | "COZIDO" | "GRELHADO";
 }
 
 interface CartFooterProps {
   items: CartItem[];
-  onUpdateQuantity: (productId: string, state: "CRU" | "COZIDO", newQuantity: number) => void;
-  onRemoveItem: (productId: string, state: "CRU" | "COZIDO") => void;
+  onUpdateQuantity: (productId: string, state: "CRU" | "COZIDO" | "GRELHADO", newQuantity: number) => void;
+  onRemoveItem: (productId: string, state: "CRU" | "COZIDO" | "GRELHADO") => void;
   onCheckout: () => void;
 }
 
