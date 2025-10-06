@@ -1,12 +1,104 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { paymentRateLimiter, getClientIP, logSecurityEvent } from "../rate-limiter/index.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Rate limiting utility
+interface RateLimitConfig {
+  windowMs: number;
+  maxRequests: number;
+  keyPrefix: string;
+}
+
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
+}
+
+const rateLimitStore = new Map<string, RateLimitEntry>();
+
+class RateLimiter {
+  private config: RateLimitConfig;
+
+  constructor(config: RateLimitConfig) {
+    this.config = config;
+  }
+
+  private cleanupExpired() {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore.entries()) {
+      if (entry.resetTime <= now) {
+        rateLimitStore.delete(key);
+      }
+    }
+  }
+
+  checkLimit(identifier: string): { allowed: boolean; remaining: number; resetTime: number } {
+    this.cleanupExpired();
+    
+    const key = `${this.config.keyPrefix}:${identifier}`;
+    const now = Date.now();
+    const resetTime = now + this.config.windowMs;
+
+    const existing = rateLimitStore.get(key);
+    
+    if (!existing || existing.resetTime <= now) {
+      rateLimitStore.set(key, { count: 1, resetTime });
+      return { 
+        allowed: true, 
+        remaining: this.config.maxRequests - 1, 
+        resetTime 
+      };
+    }
+
+    if (existing.count >= this.config.maxRequests) {
+      return { 
+        allowed: false, 
+        remaining: 0, 
+        resetTime: existing.resetTime 
+      };
+    }
+
+    existing.count++;
+    rateLimitStore.set(key, existing);
+
+    return { 
+      allowed: true, 
+      remaining: this.config.maxRequests - existing.count, 
+      resetTime: existing.resetTime 
+    };
+  }
+}
+
+const paymentRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000,
+  maxRequests: 3,
+  keyPrefix: 'payment'
+});
+
+function getClientIP(req: Request): string {
+  const xForwardedFor = req.headers.get('x-forwarded-for');
+  const xRealIP = req.headers.get('x-real-ip');
+  const cfConnectingIP = req.headers.get('cf-connecting-ip');
+  
+  return (
+    cfConnectingIP ||
+    xRealIP ||
+    (xForwardedFor && xForwardedFor.split(',')[0].trim()) ||
+    'unknown'
+  );
+}
+
+function logSecurityEvent(event: string, details: any) {
+  console.log(`[SECURITY] ${event}:`, {
+    timestamp: new Date().toISOString(),
+    ...details
+  });
+}
 
 interface PaymentRequest {
   items: Array<{
