@@ -10,7 +10,7 @@ export interface Product {
   image_url?: string;
   weight?: string;
   available: boolean;
-  states: Array<"CRU" | "COZIDO" | "GRELHADO">;
+  states: Array<"CRU" | "COZIDO">;
   prep_time?: string;
   description?: string;
   stock?: number;
@@ -47,7 +47,7 @@ export function useProducts() {
         image_url: product.image_url,
         weight: product.weight,
         available: product.available,
-        states: (product.states || []) as Array<"CRU" | "COZIDO" | "GRELHADO">,
+        states: (product.states || []) as Array<"CRU" | "COZIDO">,
         prep_time: product.prep_time,
         description: product.description,
         stock: product.stock || 0,

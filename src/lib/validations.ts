@@ -48,7 +48,7 @@ export const paymentRequestSchema = z.object({
     name: z.string().trim().min(1, "Nome do produto é obrigatório").max(100),
     price: z.number().positive("Preço deve ser positivo"),
     quantity: z.number().int("Quantidade deve ser um número inteiro").positive("Quantidade deve ser positiva").max(99, "Quantidade máxima é 99"),
-    state: z.enum(["CRU", "COZIDO", "GRELHADO"], { errorMap: () => ({ message: "Estado inválido" }) }),
+    state: z.enum(["CRU", "COZIDO"], { errorMap: () => ({ message: "Estado inválido" }) }),
   })).min(1, "Pelo menos um item é obrigatório"),
   deliveryAddress: addressSchema,
   deliveryTimeSlot: z.string().trim().min(1, "Horário de entrega é obrigatório").max(50),

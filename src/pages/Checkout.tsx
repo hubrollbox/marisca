@@ -59,15 +59,17 @@ export default function Checkout() {
         phone: formData.get('phone') as string,
       };
 
-      // Validate form data
-      addressSchema.parse(deliveryAddress);
+      // Validate all form data consistently
+      const validatedAddress = addressSchema.parse(deliveryAddress);
       
+      let validatedGuestEmail: string | undefined;
       if (!user && guestEmail) {
-        guestEmailSchema.parse({ email: guestEmail });
+        validatedGuestEmail = guestEmailSchema.parse({ email: guestEmail }).email;
       }
       
+      let validatedNotes: string | undefined;
       if (notes) {
-        checkoutNotesSchema.parse({ notes });
+        validatedNotes = checkoutNotesSchema.parse({ notes }).notes;
       }
 
       const timeSlot = formData.get('timeSlot') as string;
@@ -80,7 +82,7 @@ export default function Checkout() {
         return;
       }
 
-      // Prepare payment request
+      // Prepare payment request with validated data
       const paymentRequest = {
         items: items.map(item => ({
           id: item.product.id,
@@ -89,10 +91,10 @@ export default function Checkout() {
           quantity: item.quantity,
           state: item.state
         })),
-        deliveryAddress,
+        deliveryAddress: validatedAddress,
         deliveryTimeSlot: timeSlot,
-        notes,
-        guestEmail: !user ? guestEmail : undefined
+        notes: validatedNotes,
+        guestEmail: validatedGuestEmail
       };
 
       // Call the edge function to create payment session

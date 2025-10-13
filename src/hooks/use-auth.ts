@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useLogger } from "./use-logger";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const logger = useLogger();
 
   useEffect(() => {
     // Set up auth state listener
@@ -51,24 +53,19 @@ export function useAuth() {
         password,
       });
       
-      // Log successful login for security monitoring
+      // Log authentication events for security monitoring
       if (!error) {
-        console.info('User login successful:', {
-          timestamp: new Date().toISOString(),
-          email: email
-        });
+        logger.info('User login successful', { email });
       } else {
-        // Log failed login attempts
-        console.warn('Login attempt failed:', {
-          timestamp: new Date().toISOString(),
-          email: email,
-          error: error.message
+        logger.warn('Login attempt failed', { 
+          email, 
+          error: error.message 
         });
       }
       
       return { error };
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error('Login error', { error: error instanceof Error ? error.message : 'Unknown error' });
       return { error: error as Error };
     }
   };

@@ -81,6 +81,7 @@ export const CookieBanner = () => {
               variant="ghost"
               onClick={() => setIsVisible(false)}
               className="text-white/80 hover:text-white hover:bg-white/10 shrink-0"
+              aria-label="Fechar banner de cookies"
             >
               <X className="h-4 w-4" />
             </Button>

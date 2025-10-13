@@ -48,11 +48,38 @@
 
 ## 🚀 Quick Start
 
-```bash
-# Instalar dependências
-npm install
+### Pré-requisitos
+- Node.js 18+ 
+- npm ou yarn
+- Conta Supabase
+- Conta Stripe (para pagamentos)
 
-# Iniciar desenvolvimento
+### Configuração
+
+1. **Clonar e instalar dependências**
+```bash
+git clone <repository-url>
+cd marisca
+npm install
+```
+
+2. **Configurar variáveis de ambiente**
+```bash
+# Copiar arquivo de exemplo
+cp env.example .env.local
+
+# Editar .env.local com suas credenciais
+VITE_SUPABASE_URL=sua_url_do_supabase
+VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
+```
+
+3. **Configurar Supabase**
+- Criar projeto no Supabase
+- Executar migrações do banco de dados
+- Configurar Edge Functions para pagamentos
+
+4. **Iniciar desenvolvimento**
+```bash
 npm run dev
 ```
 
@@ -117,11 +144,45 @@ Para aceder à área de administração, use um email que contenha "admin" (ex: 
 - **Microinterações**: Toasts, loaders, transições suaves
 - **Acessibilidade**: Design inclusivo e intuitivo
 
+## 🔧 Melhorias Implementadas
+
+### Segurança
+- ✅ Credenciais movidas para variáveis de ambiente
+- ✅ Configuração TypeScript mais strict
+- ✅ Confirmação de email ativada
+- ✅ Rate limiting implementado
+- ✅ Logging estruturado para auditoria
+
+### Performance
+- ✅ Service Worker otimizado com cache strategies
+- ✅ Lazy loading de imagens
+- ✅ Error Boundaries implementados
+- ✅ PWA melhorado com shortcuts e screenshots
+
+### Qualidade de Código
+- ✅ Validação consistente com Zod
+- ✅ Error handling melhorado
+- ✅ Estados de produto consistentes
+- ✅ Acessibilidade melhorada
+
+### Monitoramento
+- ✅ Sistema de logging estruturado
+- ✅ Error tracking implementado
+- ✅ Performance monitoring
+
 ## 🔗 Links Úteis
 
 - **Supabase Dashboard**: Gestão da base de dados
 - **Stripe Dashboard**: Gestão de pagamentos
 - **PWA Testing**: Teste a instalação como app
+
+## 🚨 Próximos Passos Recomendados
+
+1. **Testes**: Implementar testes unitários e de integração
+2. **CI/CD**: Configurar pipeline de deployment
+3. **Monitoring**: Integrar com serviços de monitoramento
+4. **Analytics**: Adicionar tracking de eventos
+5. **Backup**: Configurar backup automático da base de dados
 
 ---
 

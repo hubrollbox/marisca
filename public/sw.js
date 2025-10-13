@@ -1,6 +1,8 @@
-const CACHE_NAME = 'marisca-v2-2025-10-03';
-const STATIC_CACHE = 'marisca-static-v2';
-const DYNAMIC_CACHE = 'marisca-dynamic-v2';
+const CACHE_NAME = 'marisca-v3-2025-01-15';
+const STATIC_CACHE = 'marisca-static-v3';
+const DYNAMIC_CACHE = 'marisca-dynamic-v3';
+const API_CACHE = 'marisca-api-v3';
+const IMAGE_CACHE = 'marisca-images-v3';
 
 const STATIC_ASSETS = [
   '/',
@@ -8,22 +10,29 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
+  '/offline.html'
+];
+
+const API_ENDPOINTS = [
+  '/functions/create-payment',
+  '/functions/send-order-confirmation',
+  '/functions/stripe-webhook'
 ];
 
 // Install Service Worker
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => {
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .then(() => self.skipWaiting())
+    Promise.all([
+      caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS)),
+      caches.open(API_CACHE).then((cache) => cache.addAll([])),
+      caches.open(IMAGE_CACHE).then((cache) => cache.addAll([]))
+    ]).then(() => self.skipWaiting())
   );
 });
 
 // Activate Service Worker
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [STATIC_CACHE, DYNAMIC_CACHE];
+  const cacheWhitelist = [STATIC_CACHE, DYNAMIC_CACHE, API_CACHE, IMAGE_CACHE];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -37,39 +46,111 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Strategy: Network First, fallback to Cache
+// Advanced Fetch Strategies
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  const url = new URL(request.url);
   
-  // Skip non-GET requests
-  if (request.method !== 'GET') return;
+  // Skip non-GET requests and Chrome extensions
+  if (request.method !== 'GET' || url.protocol === 'chrome-extension:') return;
   
-  // Skip Chrome extension requests
-  if (request.url.includes('chrome-extension')) return;
+  // API requests - Network First with timeout
+  if (url.pathname.includes('/functions/') || url.pathname.includes('/rest/v1/')) {
+    event.respondWith(networkFirstWithTimeout(request, API_CACHE, 5000));
+    return;
+  }
   
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        // Clone response to cache
-        const responseClone = response.clone();
-        
-        // Cache successful responses
-        if (response.status === 200) {
-          caches.open(DYNAMIC_CACHE).then((cache) => {
-            cache.put(request, responseClone);
-          });
-        }
-        
-        return response;
-      })
-      .catch(() => {
-        // Fallback to cache if network fails
-        return caches.match(request).then((cachedResponse) => {
-          return cachedResponse || new Response('Offline - content not available', {
-            status: 503,
-            statusText: 'Service Unavailable',
-          });
-        });
-      })
-  );
+  // Images - Cache First with network fallback
+  if (request.destination === 'image' || url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+    event.respondWith(cacheFirst(request, IMAGE_CACHE));
+    return;
+  }
+  
+  // Static assets - Cache First
+  if (url.pathname === '/' || url.pathname.endsWith('.html') || url.pathname.endsWith('.js') || url.pathname.endsWith('.css')) {
+    event.respondWith(cacheFirst(request, STATIC_CACHE));
+    return;
+  }
+  
+  // Everything else - Network First
+  event.respondWith(networkFirst(request, DYNAMIC_CACHE));
 });
+
+// Cache First Strategy
+async function cacheFirst(request, cacheName) {
+  try {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    // Return offline page for navigation requests
+    if (request.destination === 'document') {
+      return caches.match('/offline.html');
+    }
+    throw error;
+  }
+}
+
+// Network First Strategy
+async function networkFirst(request, cacheName) {
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    // Return offline page for navigation requests
+    if (request.destination === 'document') {
+      return caches.match('/offline.html');
+    }
+    
+    return new Response('Offline - content not available', {
+      status: 503,
+      statusText: 'Service Unavailable',
+    });
+  }
+}
+
+// Network First with Timeout
+async function networkFirstWithTimeout(request, cacheName, timeout = 5000) {
+  try {
+    const networkPromise = fetch(request);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout')), timeout)
+    );
+    
+    const networkResponse = await Promise.race([networkPromise, timeoutPromise]);
+    
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    return new Response(JSON.stringify({ error: 'Service unavailable' }), {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}

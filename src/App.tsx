@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { lazy, Suspense, useEffect } from "react";
 import { CartProvider } from "@/hooks/use-cart";
 import { CookieBanner } from "@/components/CookieBanner";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 
 // Lazy load pages for better performance
@@ -57,43 +58,47 @@ const App = () => {
   }, []);
 
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <CartProvider>
-            <BrowserRouter>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/payment-success" element={<PaymentSuccess />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/produtos" element={<Products />} />
-                  <Route path="/produtos/:id" element={<ProductDetail />} />
-                  <Route path="/sobre" element={<About />} />
-                  <Route path="/contactos" element={<Contact />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="/devolucoes" element={<Returns />} />
-                  <Route path="/parcerias" element={<Partnerships />} />
-                  <Route path="/como-funciona" element={<HowItWorks />} />
-                  <Route path="/livro-reclamacoes" element={<ComplaintsBook />} />
-                  <Route path="/politica-privacidade" element={<PrivacyPolicy />} />
-                  <Route path="/termos-condicoes" element={<TermsConditions />} />
-                  <Route path="/politica-cookies" element={<CookiePolicy />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-              <CookieBanner />
-            </BrowserRouter>
-          </CartProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <ErrorBoundary>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <CartProvider>
+              <BrowserRouter>
+                <ErrorBoundary>
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/admin" element={<Admin />} />
+                      <Route path="/payment-success" element={<PaymentSuccess />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/produtos" element={<Products />} />
+                      <Route path="/produtos/:id" element={<ProductDetail />} />
+                      <Route path="/sobre" element={<About />} />
+                      <Route path="/contactos" element={<Contact />} />
+                      <Route path="/faq" element={<FAQ />} />
+                      <Route path="/devolucoes" element={<Returns />} />
+                      <Route path="/parcerias" element={<Partnerships />} />
+                      <Route path="/como-funciona" element={<HowItWorks />} />
+                      <Route path="/livro-reclamacoes" element={<ComplaintsBook />} />
+                      <Route path="/politica-privacidade" element={<PrivacyPolicy />} />
+                      <Route path="/termos-condicoes" element={<TermsConditions />} />
+                      <Route path="/politica-cookies" element={<CookiePolicy />} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </ErrorBoundary>
+                <CookieBanner />
+              </BrowserRouter>
+            </CartProvider>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   );
 };
 

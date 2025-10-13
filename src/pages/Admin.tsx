@@ -98,6 +98,8 @@ export default function Admin() {
 
   const fetchData = async () => {
     try {
+      setLoadingData(true);
+      
       const [productsResult, ordersResult] = await Promise.all([
         supabase.from("products").select("*").order("created_at", { ascending: false }),
         supabase.from("orders").select(`
@@ -109,15 +111,23 @@ export default function Admin() {
         `).order("created_at", { ascending: false }).limit(20)
       ]);
 
-      if (productsResult.error) throw productsResult.error;
-      if (ordersResult.error) throw ordersResult.error;
+      if (productsResult.error) {
+        console.error('Products fetch error:', productsResult.error);
+        throw new Error(`Erro ao carregar produtos: ${productsResult.error.message}`);
+      }
+      
+      if (ordersResult.error) {
+        console.error('Orders fetch error:', ordersResult.error);
+        throw new Error(`Erro ao carregar encomendas: ${ordersResult.error.message}`);
+      }
 
       setProducts(productsResult.data || []);
       setOrders(ordersResult.data || []);
     } catch (error: any) {
+      console.error('Admin fetchData error:', error);
       toast({
         title: "Erro ao carregar dados",
-        description: error.message,
+        description: error.message || 'Erro desconhecido ao carregar dados',
         variant: "destructive",
       });
     } finally {

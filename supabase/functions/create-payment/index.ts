@@ -136,7 +136,7 @@ const validateItems = (items: any[]): boolean => {
       item.name && typeof item.name === 'string' && item.name.length <= 100 &&
       typeof item.price === 'number' && item.price > 0 && item.price <= 999999 &&
       typeof item.quantity === 'number' && item.quantity > 0 && item.quantity <= 99 &&
-      item.state && ['CRU', 'COZIDO', 'GRELHADO'].includes(item.state)
+      item.state && ['CRU', 'COZIDO'].includes(item.state)
     );
 };
 
@@ -335,7 +335,7 @@ serve(async (req) => {
       order_id: order.id,
       product_id: item.id,
       quantity: item.quantity,
-      state: item.state as "CRU" | "COZIDO" | "GRELHADO",
+      state: item.state as "CRU" | "COZIDO",
       unit_price: item.price,
     }));
 
