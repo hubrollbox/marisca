@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
-import type { Product } from "@/components/ui/product-card";
+import type { Product } from "../hooks/use-products";
 
-export type CartStateOption = "CRU" | "COZIDO";
+export type CartStateOption = "CRU" | "COZIDO" | "GRELHADO";
 
 export interface CartItem {
   product: Product;

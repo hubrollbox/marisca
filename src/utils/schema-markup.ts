@@ -1,4 +1,4 @@
-import type { Product } from "@/hooks/use-products";
+import type { Product } from "../hooks/use-products";
 
 export function generateProductSchema(product: Product) {
   return {

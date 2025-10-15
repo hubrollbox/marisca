@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CartFooter } from "@/components/ui/cart-footer";
-import { ProductCard } from "@/components/ui/product-card";
-import { useToast } from "@/hooks/use-toast";
-import { useProducts } from "@/hooks/use-products";
+import { CartFooter } from "../components/ui/cart-footer";
+import { ProductCard } from "../components/ui/product-card";
+import { useToast } from "../hooks/use-toast";
+import { useProducts } from "../hooks/use-products";
 import { Loader2 } from "lucide-react";
-import { Header } from "@/components/Header";
-import heroImage from "@/assets/hero-seafood.jpg";
-import { useCart } from "@/hooks/use-cart";
-import { Footer } from "@/components/Footer";
-import { SEO } from "@/components/SEO";
-import { Testimonials } from "@/components/Testimonials";
-import { generateWebsiteSchema } from "@/utils/schema-markup";
+import { Header } from "../components/Header";
+import heroImage from "../assets/hero-seafood.jpg";
+import { useCart } from "../hooks/use-cart";
+import { Footer } from "../components/Footer";
+import { SEO } from "../components/SEO";
+import { Testimonials } from "../components/Testimonials";
+import { generateWebsiteSchema } from "../utils/schema-markup";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -24,16 +24,16 @@ export default function Index() {
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const addToCart = (product: any, quantity: number, state: "CRU" | "COZIDO") => {
+  const addToCart = (product: any, quantity: number, state: "CRU" | "COZIDO" | "GRELHADO") => {
     addItem(product, quantity, state);
     toast({ title: "Adicionado ao carrinho", description: `${quantity}x ${product.name} (${state})` });
   };
 
-  const handleUpdateQuantity = (productId: string, state: "CRU" | "COZIDO", newQuantity: number) => {
+  const handleUpdateQuantity = (productId: string, state: "CRU" | "COZIDO" | "GRELHADO", newQuantity: number) => {
     updateQuantity(productId, state, newQuantity);
   };
 
-  const handleRemoveItem = (productId: string, state: "CRU" | "COZIDO") => {
+  const handleRemoveItem = (productId: string, state: "CRU" | "COZIDO" | "GRELHADO") => {
     removeItem(productId, state);
     toast({ title: "Removido do carrinho", description: "Item removido com sucesso" });
   };

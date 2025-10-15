@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useProducts } from "@/hooks/use-products";
-import { useCart } from "@/hooks/use-cart";
-import { useToast } from "@/hooks/use-toast";
-import { Header } from "@/components/Header";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { CartFooter } from "@/components/ui/cart-footer";
-import { Footer } from "@/components/Footer";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { useProducts } from "../hooks/use-products";
+import { useCart } from "../hooks/use-cart";
+import { useToast } from "../hooks/use-toast";
+import { Header } from "../components/Header";
+import { Breadcrumbs } from "../components/Breadcrumbs";
+import { CartFooter } from "../components/ui/cart-footer";
+import { Footer } from "../components/Footer";
 
 const ProductDetail = () => {
   const { id } = useParams();
