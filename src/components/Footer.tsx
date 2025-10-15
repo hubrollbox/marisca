@@ -40,7 +40,7 @@ export function Footer() {
               className="inline-flex items-center opacity-70 hover:opacity-100 transition-opacity"
               aria-label="Livro de Reclamações"
             >
-              <img src="/livro-reclamacoes.svg" alt="Livro de Reclamações" className="h-5 w-auto" />
+              <img src="/livro-reclamacoes.svg" alt="Livro de Reclamações" className="h-3 w-auto" />
             </a>
           </div>
         </div>
