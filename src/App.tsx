@@ -1,13 +1,13 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "./components/ui/toaster";
+import { Toaster as Sonner } from "./components/ui/sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { lazy, Suspense, useEffect } from "react";
-import { CartProvider } from "@/hooks/use-cart";
-import { CookieBanner } from "@/components/CookieBanner";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { CartProvider } from "./hooks/use-cart";
+import { CookieBanner } from "./components/CookieBanner";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import Index from "./pages/Index";
 
 // Lazy load pages for better performance
