@@ -33,12 +33,15 @@ export function Footer() {
             >
               Política de Cookies
             </Link>
-            <Link 
-              to="/livro-reclamacoes" 
-              className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+            <a
+              href="https://www.livroreclamacoes.pt/Utilizador/AutenticacaoConsumidor"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center opacity-70 hover:opacity-100 transition-opacity"
+              aria-label="Livro de Reclamações"
             >
-              Livro de Reclamações
-            </Link>
+              <img src="/livro-reclamacoes.svg" alt="Livro de Reclamações" className="h-5 w-auto" />
+            </a>
           </div>
         </div>
 
@@ -46,7 +49,7 @@ export function Footer() {
 
         {/* Contactos */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-primary-foreground/70">
-          <p>© 2024 Marisca. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} Marisca. Todos os direitos reservados.</p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <a 
               href="tel:+351220145169" 
