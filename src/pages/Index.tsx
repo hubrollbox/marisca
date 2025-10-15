@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CartFooter } from "../components/ui/cart-footer";
 import { ProductCard } from "../components/ui/product-card";
 import { useToast } from "../hooks/use-toast";
-import { useProducts } from "../hooks/use-products";
+import { useProducts, Product } from "../hooks/use-products";
 import { Loader2 } from "lucide-react";
 import { Header } from "../components/Header";
 import heroImage from "../assets/hero-seafood.jpg";
@@ -20,11 +20,11 @@ export default function Index() {
   const { toast } = useToast();
   const { data: products, isLoading } = useProducts();
 
-  const filteredProducts = products?.filter(product =>
+  const filteredProducts = products?.filter((product: Product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const addToCart = (product: any, quantity: number, state: "CRU" | "COZIDO" | "GRELHADO") => {
+  const addToCart = (product: Product, quantity: number, state: "CRU" | "COZIDO" | "GRELHADO") => {
     addItem(product, quantity, state);
     toast({ title: "Adicionado ao carrinho", description: `${quantity}x ${product.name} (${state})` });
   };
@@ -100,7 +100,7 @@ export default function Index() {
               </p>
             </div>
           ) : (
-            filteredProducts.map((product) => (
+            filteredProducts.map((product: Product) => (
               <ProductCard
                 key={product.id}
                 product={{

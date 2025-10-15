@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { Card } from "../components/ui/card";
-import { useProducts } from "../hooks/use-products";
+import { useProducts, Product } from "../hooks/use-products";
 import { useCart } from "../hooks/use-cart";
 import { useToast } from "../hooks/use-toast";
 import { Header } from "../components/Header";
@@ -23,14 +23,14 @@ const Products = () => {
 
   const categories = ["all", "Crustáceos", "Bivalves", "Moluscos", "Peixes"];
 
-  const filteredProducts = products?.filter(product => {
+  const filteredProducts = products?.filter((product: Product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   }) || [];
 
-  const addToCart = (product: any, quantity: number, state: "CRU" | "COZIDO" | "GRELHADO") => {
+  const addToCart = (product: Product, quantity: number, state: "CRU" | "COZIDO" | "GRELHADO") => {
     addItem(product, quantity, state);
     toast({ title: "Adicionado ao carrinho", description: `${quantity}x ${product.name} (${state})` });
   };
@@ -116,7 +116,7 @@ const Products = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product) => (
+            {filteredProducts.map((product: Product) => (
               <ProductCard
                 key={product.id}
                 product={{

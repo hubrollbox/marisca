@@ -5,7 +5,7 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { useProducts } from "../hooks/use-products";
+import { useProducts, Product } from "../hooks/use-products";
 import { useCart } from "../hooks/use-cart";
 import { useToast } from "../hooks/use-toast";
 import { Header } from "../components/Header";
@@ -23,7 +23,7 @@ const ProductDetail = () => {
   const [selectedState, setSelectedState] = useState<"CRU" | "COZIDO" | "GRELHADO">("CRU");
   const [quantity, setQuantity] = useState(1);
 
-  const product = products?.find(p => p.id === id);
+  const product = products?.find((p: Product) => p.id === id);
 
   const handleAddToCart = () => {
     if (product) {
@@ -145,11 +145,11 @@ const ProductDetail = () => {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Preparação:</label>
                     <div className="flex gap-2">
-                      {product.states.map((state) => (
+                      {product.states.map((state: "CRU" | "COZIDO" | "GRELHADO") => (
                         <Button
                           key={state}
                           variant={selectedState === state ? "default" : "outline"}
-                          onClick={() => setSelectedState(state as "CRU" | "COZIDO")}
+                          onClick={() => setSelectedState(state)}
                           className="flex-1"
                         >
                           {state === "CRU" ? "Cru" : state === "COZIDO" ? "Cozido" : "Grelhado"}

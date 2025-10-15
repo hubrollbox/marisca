@@ -10,7 +10,7 @@ export interface Product {
   image_url?: string;
   weight?: string;
   available: boolean;
-  states: Array<"CRU" | "COZIDO">;
+  states: Array<"CRU" | "COZIDO" | "GRELHADO">;
   prep_time?: string;
   description?: string;
   stock?: number;
