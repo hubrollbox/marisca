@@ -41,7 +41,7 @@ export function Footer() {
               className="inline-flex items-center"
               aria-label="Livro de Reclamações"
             >
-              <img src="/livro-reclamacoes.svg" alt="Livro de Reclamações" className="h-6 w-auto" />
+              <img src="/livro-reclamacoes.svg" alt="Livro de Reclamações" className="h-8 w-auto" />
             </a>
           </div>
         </div>
