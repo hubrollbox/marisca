@@ -57,7 +57,7 @@ export default function Index() {
       />
 
       {/* Hero Section */}
-      <section className="relative h-56 sm:h-72 md:h-80 overflow-hidden">
+      <section className="relative h-44 sm:h-56 md:h-64 overflow-hidden">
         <img 
           src="/hero-home.jpg" 
           alt="Barco de pesca e armadilhas na praia, costa portuguesa"

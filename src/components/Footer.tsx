@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { MariscaLogo } from "@/components/MariscaLogo";
 import { Separator } from "@/components/ui/separator";
+import { Handshake } from "lucide-react";
 
 export function Footer() {
   return (
@@ -40,7 +41,7 @@ export function Footer() {
               className="inline-flex items-center"
               aria-label="Livro de Reclamações"
             >
-              <img src="/livro-reclamacoes.svg" alt="Livro de Reclamações" className="h-5 w-auto" />
+              <img src="/livro-reclamacoes.svg" alt="Livro de Reclamações" className="h-6 w-auto" />
             </a>
           </div>
         </div>
@@ -122,9 +123,11 @@ export function Footer() {
           {/* CTA Parcerias */}
           <Link
             to="/parcerias"
-            className="text-xs px-2 py-1 rounded-md border border-primary-foreground/30 text-primary-foreground/90 hover:bg-primary-foreground/10 transition-colors"
+            className="inline-flex items-center gap-2 text-xs px-2 py-1 rounded-md bg-muted border border-border text-foreground hover:bg-muted/80 transition-colors"
+            aria-label="Juntos pelo mar"
           >
-            Parcerias
+            <Handshake className="h-4 w-4" />
+            Juntos pelo mar
           </Link>
         </div>
 
