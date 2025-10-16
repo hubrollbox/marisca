@@ -6,7 +6,6 @@ import { useToast } from "../hooks/use-toast";
 import { useProducts, Product } from "../hooks/use-products";
 import { Loader2 } from "lucide-react";
 import { Header } from "../components/Header";
-import heroImage from "../assets/hero-seafood.jpg";
 import { useCart } from "../hooks/use-cart";
 import { Footer } from "../components/Footer";
 import { SEO } from "../components/SEO";
@@ -58,11 +57,11 @@ export default function Index() {
       />
 
       {/* Hero Section */}
-      <section className="relative h-48 overflow-hidden">
+      <section className="relative h-56 sm:h-72 md:h-80 overflow-hidden">
         <img 
-          src={heroImage} 
-          alt="Marisco fresco da costa portuguesa"
-          className="w-full h-full object-cover"
+          src="/hero-home.jpg" 
+          alt="Barco de pesca e armadilhas na praia, costa portuguesa"
+          className="w-full h-full object-cover object-[50%_60%]"
           loading="eager"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
