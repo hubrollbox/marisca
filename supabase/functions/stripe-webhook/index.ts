@@ -53,9 +53,12 @@ serve(async (req) => {
           .from("orders")
           .update({
             payment_status: "paid",
-            status: "confirmada",
+            status: "confirmado",
+            stripe_payment_intent_id: typeof session.payment_intent === 'string' 
+              ? session.payment_intent 
+              : (session.payment_intent as Stripe.PaymentIntent | null)?.id ?? null,
           })
-          .eq("stripe_payment_intent_id", session.payment_intent as string)
+          .eq("stripe_session_id", session.id)
           .select("id, user_id, total_amount, delivery_fee, delivery_address, delivery_time_slot, guest_email")
           .single();
 
@@ -75,29 +78,32 @@ serve(async (req) => {
         break;
       }
 
-      case "payment_intent.succeeded": {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log("💳 Payment succeeded:", paymentIntent.id);
-        
-        await supabase
-          .from("orders")
-          .update({ payment_status: "paid" })
-          .eq("stripe_payment_intent_id", paymentIntent.id);
+      case "checkout.session.expired": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        console.log("⌛ Checkout session expired:", session.id);
 
-        break;
-      }
-
-      case "payment_intent.payment_failed": {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log("❌ Payment failed:", paymentIntent.id);
-        
         await supabase
           .from("orders")
           .update({ 
             payment_status: "failed",
             status: "cancelada"
           })
-          .eq("stripe_payment_intent_id", paymentIntent.id);
+          .eq("stripe_session_id", session.id);
+
+        break;
+      }
+
+      case "checkout.session.async_payment_failed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        console.log("❌ Async payment failed:", session.id);
+
+        await supabase
+          .from("orders")
+          .update({ 
+            payment_status: "failed",
+            status: "cancelada"
+          })
+          .eq("stripe_session_id", session.id);
 
         break;
       }
@@ -203,6 +209,7 @@ async function sendOrderConfirmation(order: any) {
 
     // Get customer info
     let customerName = "Cliente";
+    let email: string | undefined = order.guest_email || undefined;
     if (order.user_id) {
       const { data: profile } = await supabase
         .from("profiles")
@@ -213,6 +220,18 @@ async function sendOrderConfirmation(order: any) {
       if (profile) {
         customerName = `${profile.first_name} ${profile.last_name}`;
       }
+
+      // Fetch user email via admin API (service role)
+      if (!email) {
+        try {
+          const { data: userResp, error: userError } = await supabase.auth.admin.getUserById(order.user_id);
+          if (!userError && userResp?.user?.email) {
+            email = userResp.user.email as string;
+          }
+        } catch (e) {
+          console.error("Error fetching user email:", e);
+        }
+      }
     } else if (order.delivery_address?.name) {
       customerName = order.delivery_address.name;
     }
@@ -222,7 +241,7 @@ async function sendOrderConfirmation(order: any) {
       body: {
         orderId: order.id,
         orderNumber: order.id.substring(0, 8).toUpperCase(),
-        email: order.guest_email || order.user_email,
+        email,
         customerName,
         items: itemsWithNames,
         subtotal: parseFloat(order.total_amount) - parseFloat(order.delivery_fee),

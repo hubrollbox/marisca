@@ -318,7 +318,7 @@ serve(async (req) => {
       delivery_address: paymentData.deliveryAddress,
       delivery_time_slot: paymentData.deliveryTimeSlot,
       notes: paymentData.notes,
-      stripe_payment_intent_id: session.id,
+      stripe_session_id: session.id,
       payment_status: 'pending',
     };
 

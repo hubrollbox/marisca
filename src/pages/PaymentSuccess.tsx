@@ -30,7 +30,7 @@ export default function PaymentSuccess() {
             products (name, price)
           )
         `)
-        .eq('stripe_payment_intent_id', sessionId)
+        .eq('stripe_session_id', sessionId)
         .single();
 
       if (error) throw error;

@@ -70,7 +70,12 @@ cp env.example .env.local
 
 # Editar .env.local com suas credenciais
 VITE_SUPABASE_URL=sua_url_do_supabase
-VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
+VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_publica_do_supabase (igual à anon key)
+
+# Variáveis para Edge Functions (Deno)
+SUPABASE_URL=sua_url_do_supabase
+SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
+SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key_do_supabase
 ```
 
 3. **Configurar Supabase**

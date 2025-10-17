@@ -166,6 +166,7 @@ export type Database = {
           payment_method: string | null
           payment_status: string | null
           status: Database["public"]["Enums"]["order_status"]
+          stripe_session_id: string | null
           stripe_payment_intent_id: string | null
           total_amount: number
           updated_at: string
@@ -182,6 +183,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          stripe_session_id?: string | null
           stripe_payment_intent_id?: string | null
           total_amount: number
           updated_at?: string
@@ -198,6 +200,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          stripe_session_id?: string | null
           stripe_payment_intent_id?: string | null
           total_amount?: number
           updated_at?: string
