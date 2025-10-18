@@ -41,7 +41,7 @@ interface ProductCardProps {
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [selectedState, setSelectedState] = useState<"CRU" | "COZIDO" | "GRELHADO">(product.states[0]);
+  const [selectedState] = useState<"CRU" | "COZIDO" | "GRELHADO">(product.states[0]);
 
   const handleAddToCart = () => {
     onAddToCart(product, quantity, selectedState);
@@ -86,17 +86,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           
           <div className="p-4 space-y-2">
             <h3 className="font-semibold text-foreground line-clamp-2">{product.name}</h3>
+            {product.scientific_name && (
+              <p className="text-xs text-muted-foreground italic line-clamp-1">{product.scientific_name}</p>
+            )}
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">{product.weight}</div>
               <div className="font-bold text-lg text-primary">€{product.price.toFixed(2)}</div>
             </div>
-            <div className="flex gap-1">
-              {product.states.map((state) => (
-                <Badge key={state} variant="outline" className="text-xs">
-                  {state}
-                </Badge>
-              ))}
-            </div>
+            {/* Removido: badges de estados para evitar confusão (cru/cozido/grelhado) */}
           </div>
         </Card>
       </DialogTrigger>
@@ -124,6 +121,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           
           <div className="space-y-3">
             <h2 className="text-xl font-bold text-foreground">{product.name}</h2>
+            {product.scientific_name && (
+              <p className="text-xs text-muted-foreground italic">{product.scientific_name}</p>
+            )}
             {product.description && (
               <p className="text-muted-foreground text-sm">{product.description}</p>
             )}
@@ -135,24 +135,27 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               <span className="text-2xl font-bold text-primary">€{product.price.toFixed(2)}</span>
             </div>
 
-            {product.states.length > 1 && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Estado:</label>
-                <div className="flex gap-2">
-                  {product.states.map((state) => (
-                    <Button
-                      key={state}
-                      variant={selectedState === state ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedState(state)}
-                      className="flex-1"
-                    >
-                      {state}
-                    </Button>
-                  ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {product.origin && (
+                <div>
+                  <span className="text-sm font-medium">Origem:</span>{" "}
+                  <span className="text-sm text-muted-foreground">{product.origin}</span>
                 </div>
-              </div>
-            )}
+              )}
+              {product.ideal_conservation && (
+                <div>
+                  <span className="text-sm font-medium">Conservação ideal:</span>{" "}
+                  <span className="text-sm text-muted-foreground">{product.ideal_conservation}</span>
+                </div>
+              )}
+              {product.consumption_suggestion && (
+                <div className="sm:col-span-2">
+                  <span className="text-sm font-medium">Sugestão de consumo:</span>{" "}
+                  <span className="text-sm text-muted-foreground">{product.consumption_suggestion}</span>
+                </div>
+              )}
+            </div>
+            {/* Removido: seleção de estado (cru/cozido/grelhado) */}
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -187,7 +190,8 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
             <Button 
               onClick={handleAddToCart}
-              className="w-full bg-gradient-sunset hover:opacity-90 text-white font-semibold py-3"
+              size="lg"
+              className="w-full font-semibold"
               disabled={!product.available}
             >
               Adicionar por €{(product.price * quantity).toFixed(2)}

@@ -130,6 +130,10 @@ const Products = () => {
                   prepTime: product.prep_time || "",
                   description: product.description || "",
                   stock: product.stock,
+                  origin: product.origin || "",
+                  scientific_name: product.scientific_name || "",
+                  ideal_conservation: product.ideal_conservation || "",
+                  consumption_suggestion: product.consumption_suggestion || "",
                 }}
                 onAddToCart={addToCart}
               />
