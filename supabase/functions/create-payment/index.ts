@@ -103,8 +103,6 @@ function logSecurityEvent(event: string, details: any) {
 interface PaymentRequest {
   items: Array<{
     id: string;
-    name: string;
-    price: number;
     quantity: number;
     state: string;
   }>;
