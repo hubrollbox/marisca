@@ -18,7 +18,7 @@ import { ArrowLeft, Clock, MapPin, CreditCard, Loader2 } from "lucide-react";
 export default function Checkout() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { items, clear } = useCart();
+  const { items } = useCart();
   const [loading, setLoading] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState({
@@ -86,8 +86,6 @@ export default function Checkout() {
       const paymentRequest = {
         items: items.map(item => ({
           id: item.product.id,
-          name: item.product.name,
-          price: item.product.price,
           quantity: item.quantity,
           state: item.state
         })),
@@ -114,8 +112,7 @@ export default function Checkout() {
 
       if (data?.url) {
         // Redirect to Stripe Checkout
-        window.open(data.url, '_blank');
-        clear();
+        window.location.href = data.url;
       } else {
         toast({
           title: "Erro",
