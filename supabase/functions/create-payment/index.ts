@@ -127,16 +127,13 @@ const validateEmail = (email: string): boolean => {
 };
 
 const validateItems = (items: any[]): boolean => {
-  return items && 
-    Array.isArray(items) && 
-    items.length > 0 && 
+  return Array.isArray(items) &&
+    items.length > 0 &&
     items.length <= 50 &&
-    items.every(item => 
-      item.id && typeof item.id === 'string' &&
-      item.name && typeof item.name === 'string' && item.name.length <= 100 &&
-      typeof item.price === 'number' && item.price > 0 && item.price <= 999999 &&
-      typeof item.quantity === 'number' && item.quantity > 0 && item.quantity <= 99 &&
-      item.state && ['CRU', 'COZIDO'].includes(item.state)
+    items.every(item =>
+      item && typeof item.id === "string" && item.id.length > 0 &&
+      typeof item.quantity === "number" && Number.isInteger(item.quantity) && item.quantity > 0 && item.quantity <= 99 &&
+      typeof item.state === "string" && ["CRU", "COZIDO"].includes(item.state)
     );
 };
 
@@ -205,10 +202,15 @@ serve(async (req) => {
       throw new Error('Email de convidado inválido');
     }
     
-    // Create Supabase client
+    // Public client is used only to validate an optional user token.
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+    // All order and product reads/writes use the server-side service role.
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     let user = null;
@@ -253,30 +255,52 @@ serve(async (req) => {
       customerId = customer.id;
     }
 
-    // Create line items for Stripe
-    const lineItems = paymentData.items.map(item => ({
+    // Prices and availability are authoritative only when read from the database.
+    const productIds = [...new Set(paymentData.items.map(item => item.id))];
+    const { data: products, error: productsError } = await supabaseAdmin
+      .from("products")
+      .select("id, name, price, stock, available")
+      .in("id", productIds);
+
+    if (productsError) throw productsError;
+    if (!products || products.length !== productIds.length) {
+      return new Response(JSON.stringify({ error: "Um ou mais produtos já não estão disponíveis." }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409
+      });
+    }
+
+    const productById = new Map(products.map(product => [product.id, product]));
+    for (const item of paymentData.items) {
+      const product = productById.get(item.id);
+      if (!product || product.available !== true || Number(product.stock) < item.quantity) {
+        return new Response(JSON.stringify({ error: "Produto indisponível ou stock insuficiente." }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409
+        });
+      }
+    }
+
+    const trustedItems = paymentData.items.map(item => {
+      const product = productById.get(item.id)!;
+      return { id: item.id, name: product.name, price: Number(product.price), quantity: item.quantity, state: item.state };
+    });
+
+    const lineItems = trustedItems.map(item => ({
       price_data: {
-        currency: 'eur',
-        product_data: {
-          name: `${item.name} (${item.state})`,
-        },
-        unit_amount: Math.round(item.price * 100), // Convert to cents
+        currency: "eur",
+        product_data: { name: `${item.name} (${item.state})` },
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
     }));
 
-    // Calculate delivery fee
-    const subtotal = paymentData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = trustedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const deliveryFee = subtotal >= 30 ? 0 : 4.99;
-    
-    // Add delivery fee if applicable
+
     if (deliveryFee > 0) {
       lineItems.push({
         price_data: {
-          currency: 'eur',
-          product_data: {
-            name: 'Taxa de Entrega',
-          },
+          currency: "eur",
+          product_data: { name: "Taxa de Entrega" },
           unit_amount: Math.round(deliveryFee * 100),
         },
         quantity: 1,
@@ -322,7 +346,7 @@ serve(async (req) => {
       payment_status: 'pending',
     };
 
-    const { data: order, error: orderError } = await supabaseClient
+    const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .insert(orderData)
       .select()
@@ -331,7 +355,7 @@ serve(async (req) => {
     if (orderError) throw orderError;
 
     // Insert order items
-    const orderItems = paymentData.items.map(item => ({
+    const orderItems = trustedItems.map(item => ({
       order_id: order.id,
       product_id: item.id,
       quantity: item.quantity,
@@ -339,7 +363,7 @@ serve(async (req) => {
       unit_price: item.price,
     }));
 
-    const { error: itemsError } = await supabaseClient
+    const { error: itemsError } = await supabaseAdmin
       .from('order_items')
       .insert(orderItems);
 
