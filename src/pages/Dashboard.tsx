@@ -15,7 +15,7 @@ interface Order {
   status: string;
   total_amount: number;
   delivery_fee: number;
-  delivery_time_slot?: string;
+  delivery_time_slot?: string | null;
   created_at: string;
   delivery_address: any;
   order_items: Array<{
@@ -84,7 +84,7 @@ export default function Dashboard() {
             )
           )
         `)
-        .eq("user_id", user?.id)
+        .eq("user_id", user?.id ?? "")
         .order("created_at", { ascending: false });
 
       if (error) throw error;

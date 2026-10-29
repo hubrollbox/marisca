@@ -183,7 +183,7 @@ export default function Checkout() {
             {items.map((item) => (
               <div key={`${item.product.id}-${item.state}`} className="flex items-center gap-3">
                 <img 
-                  src={item.product.image_url || item.product.image}
+                  src={item.product.image_url || "/placeholder.svg"}
                   alt={item.product.name}
                   className="w-12 h-12 object-cover rounded-md"
                 />
