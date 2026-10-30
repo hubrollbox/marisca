@@ -1,10 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Card } from "../components/ui/card";
-import { useProducts, Product } from "../hooks/use-products";
-import { useCart } from "../hooks/use-cart";
-import { useToast } from "../hooks/use-toast";
+import { Button } from "../components/ui/button";
+import { useProducts } from "../hooks/use-products";
 import { Header } from "../components/Header";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { ProductCard } from "../components/ui/product-card";
@@ -12,48 +10,36 @@ import { CartFooter } from "../components/ui/cart-footer";
 import { Footer } from "../components/Footer";
 import { SEO } from "../components/SEO";
 import { generateBreadcrumbSchema } from "../utils/schema-markup";
+import { cn } from "../lib/utils";
 
 const Products = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const { data: products, isLoading } = useProducts();
-  const { items, addItem, updateQuantity, removeItem } = useCart();
-  const { toast } = useToast();
+  const { data: products, isLoading, isError, refetch } = useProducts();
 
-  const categories = ["all", "Crustáceos", "Bivalves", "Moluscos", "Peixes"];
+  // Categorias tiradas dos próprios produtos (sem listas fixas que se desatualizam)
+  const categories = useMemo(() => {
+    const set = new Set((products ?? []).map((p) => p.category).filter(Boolean) as string[]);
+    return ["all", ...[...set].sort((a, b) => a.localeCompare(b, "pt"))];
+  }, [products]);
 
-  const filteredProducts = products?.filter((product: Product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  }) || [];
-
-  const addToCart = (product: Product, quantity: number, state: "CRU" | "COZIDO" | "GRELHADO") => {
-    addItem(product, quantity, state);
-    toast({ title: "Adicionado ao carrinho", description: `${quantity}x ${product.name} (${state})` });
-  };
-
-  const handleUpdateQuantity = (productId: string, state: "CRU" | "COZIDO" | "GRELHADO", newQuantity: number) => {
-    updateQuantity(productId, state, newQuantity);
-  };
-
-  const handleRemoveItem = (productId: string, state: "CRU" | "COZIDO" | "GRELHADO") => {
-    removeItem(productId, state);
-  };
-
-  const onCheckout = () => {
-    navigate("/checkout");
-  };
+  const term = searchTerm.toLowerCase();
+  const filteredProducts =
+    products?.filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(term) || product.description?.toLowerCase().includes(term);
+      const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    }) || [];
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="A carregar">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,55 +74,42 @@ const Products = () => {
           </p>
         </header>
 
-        {/* Category Filter */}
-        <nav className="flex gap-2 mb-8 overflow-x-auto pb-2" aria-label="Filtros de categoria">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
-                selectedCategory === category
-                  ? "bg-primary text-white"
-                  : "bg-muted hover:bg-muted/80"
-              }`}
-              aria-pressed={selectedCategory === category}
-            >
-              {category === "all" ? "Todos" : category}
-            </button>
-          ))}
-        </nav>
+        {categories.length > 1 && (
+          <nav className="flex gap-2 mb-8 overflow-x-auto pb-2" aria-label="Filtros de categoria">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={cn(
+                  "px-4 py-2 rounded-full whitespace-nowrap transition-all",
+                  selectedCategory === category
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground hover:bg-muted/80",
+                )}
+                aria-pressed={selectedCategory === category}
+              >
+                {category === "all" ? "Todos" : category}
+              </button>
+            ))}
+          </nav>
+        )}
 
-        {/* Products Grid */}
-        {filteredProducts.length === 0 ? (
+        {isError ? (
+          <Card className="p-8 text-center space-y-3">
+            <p className="text-muted-foreground">Não foi possível carregar os produtos.</p>
+            <Button variant="outline" onClick={() => refetch()}>
+              Tentar novamente
+            </Button>
+          </Card>
+        ) : filteredProducts.length === 0 ? (
           <Card className="p-8 text-center">
             <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
-            <p className="text-muted-foreground">
-              Tente ajustar a sua pesquisa ou volte mais tarde
-            </p>
+            <p className="text-muted-foreground">Tente ajustar a sua pesquisa ou volte mais tarde</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product: Product) => (
-              <ProductCard
-                key={product.id}
-                product={{
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  image: product.image_url || "/placeholder.svg",
-                  weight: product.weight || "",
-                  available: product.available,
-                  states: product.states,
-                  prepTime: product.prep_time || "",
-                  description: product.description || "",
-                  stock: product.stock,
-                  origin: product.origin || "",
-                  scientific_name: product.scientific_name || "",
-                  ideal_conservation: product.ideal_conservation || "",
-                  consumption_suggestion: product.consumption_suggestion || "",
-                }}
-                onAddToCart={addToCart}
-              />
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
@@ -144,14 +117,7 @@ const Products = () => {
 
       <Footer />
 
-      {items.length > 0 && (
-        <CartFooter
-          items={items}
-          onUpdateQuantity={handleUpdateQuantity}
-          onRemoveItem={handleRemoveItem}
-          onCheckout={onCheckout}
-        />
-      )}
+      <CartFooter />
     </div>
   );
 };

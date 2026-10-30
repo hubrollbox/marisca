@@ -1,423 +1,215 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://esm.sh/zod@3.23.8";
+import { calcTotals, roundCents, saleBlock, SALE_BLOCK_LABELS, PRODUCT_STATES } from "../_shared/pricing.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Rate limiting utility
-interface RateLimitConfig {
-  windowMs: number;
-  maxRequests: number;
-  keyPrefix: string;
-}
+// ---------- Rate limiting (memória da instância) ----------
+const WINDOW_MS = 60_000;
+const MAX_REQUESTS = 5;
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
-interface RateLimitEntry {
-  count: number;
-  resetTime: number;
-}
-
-const rateLimitStore = new Map<string, RateLimitEntry>();
-
-class RateLimiter {
-  private config: RateLimitConfig;
-
-  constructor(config: RateLimitConfig) {
-    this.config = config;
+function checkRateLimit(ip: string) {
+  const now = Date.now();
+  for (const [k, v] of rateLimitStore) if (v.resetTime <= now) rateLimitStore.delete(k);
+  const entry = rateLimitStore.get(ip);
+  if (!entry) {
+    rateLimitStore.set(ip, { count: 1, resetTime: now + WINDOW_MS });
+    return true;
   }
-
-  private cleanupExpired() {
-    const now = Date.now();
-    for (const [key, entry] of rateLimitStore.entries()) {
-      if (entry.resetTime <= now) {
-        rateLimitStore.delete(key);
-      }
-    }
-  }
-
-  checkLimit(identifier: string): { allowed: boolean; remaining: number; resetTime: number } {
-    this.cleanupExpired();
-    
-    const key = `${this.config.keyPrefix}:${identifier}`;
-    const now = Date.now();
-    const resetTime = now + this.config.windowMs;
-
-    const existing = rateLimitStore.get(key);
-    
-    if (!existing || existing.resetTime <= now) {
-      rateLimitStore.set(key, { count: 1, resetTime });
-      return { 
-        allowed: true, 
-        remaining: this.config.maxRequests - 1, 
-        resetTime 
-      };
-    }
-
-    if (existing.count >= this.config.maxRequests) {
-      return { 
-        allowed: false, 
-        remaining: 0, 
-        resetTime: existing.resetTime 
-      };
-    }
-
-    existing.count++;
-    rateLimitStore.set(key, existing);
-
-    return { 
-      allowed: true, 
-      remaining: this.config.maxRequests - existing.count, 
-      resetTime: existing.resetTime 
-    };
-  }
+  if (entry.count >= MAX_REQUESTS) return false;
+  entry.count++;
+  return true;
 }
-
-const paymentRateLimiter = new RateLimiter({
-  windowMs: 60 * 1000,
-  maxRequests: 3,
-  keyPrefix: 'payment'
-});
 
 function getClientIP(req: Request): string {
-  const xForwardedFor = req.headers.get('x-forwarded-for');
-  const xRealIP = req.headers.get('x-real-ip');
-  const cfConnectingIP = req.headers.get('cf-connecting-ip');
-  
   return (
-    cfConnectingIP ||
-    xRealIP ||
-    (xForwardedFor && xForwardedFor.split(',')[0].trim()) ||
-    'unknown'
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-real-ip") ||
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    "unknown"
   );
 }
 
-function logSecurityEvent(event: string, details: any) {
-  console.log(`[SECURITY] ${event}:`, {
-    timestamp: new Date().toISOString(),
-    ...details
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
 
-interface PaymentRequest {
-  items: Array<{
-    id: string;
-    quantity: number;
-    state: string;
-  }>;
-  deliveryAddress: {
-    name: string;
-    street: string;
-    city: string;
-    postalCode: string;
-    phone: string;
-  };
-  deliveryTimeSlot?: string;
-  notes?: string;
-  guestEmail?: string;
-}
-
-// Validation functions
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) && email.length <= 255;
-};
-
-const validateItems = (items: any[]): boolean => {
-  return Array.isArray(items) &&
-    items.length > 0 &&
-    items.length <= 50 &&
-    items.every(item =>
-      item && typeof item.id === "string" && item.id.length > 0 &&
-      typeof item.quantity === "number" && Number.isInteger(item.quantity) && item.quantity > 0 && item.quantity <= 99 &&
-      typeof item.state === "string" && ["CRU", "COZIDO"].includes(item.state)
-    );
-};
-
-const validateAddress = (address: any): boolean => {
-  const postalCodeRegex = /^\d{4}-\d{3}$/;
-  return address &&
-    address.name && typeof address.name === 'string' && address.name.length <= 100 &&
-    address.street && typeof address.street === 'string' && address.street.length <= 200 &&
-    address.city && typeof address.city === 'string' && address.city.length <= 100 &&
-    address.postalCode && postalCodeRegex.test(address.postalCode) &&
-    address.phone && typeof address.phone === 'string' && address.phone.length <= 20;
-};
+// ---------- Validação: o cliente só envia id, quantidade e estado ----------
+const BodySchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        quantity: z.number().int().min(1).max(99),
+        state: z.enum(PRODUCT_STATES),
+      }),
+    )
+    .min(1)
+    .max(50),
+  deliveryAddress: z.object({
+    name: z.string().trim().min(1).max(100),
+    street: z.string().trim().min(1).max(200),
+    city: z.string().trim().min(1).max(100),
+    postalCode: z.string().trim().regex(/^\d{4}-\d{3}$/),
+    phone: z.string().trim().regex(/^[0-9\s+\-()]+$/).min(9).max(20),
+  }),
+  deliveryTimeSlot: z.string().trim().min(1).max(50),
+  notes: z.string().trim().max(500).optional(),
+  guestEmail: z.string().trim().email().max(255).optional(),
+});
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Método não suportado" }, 405);
 
-  const clientIP = getClientIP(req);
-  
-  // Rate limiting check
-  const rateLimitResult = paymentRateLimiter.checkLimit(clientIP);
-  if (!rateLimitResult.allowed) {
-    logSecurityEvent('RATE_LIMIT_EXCEEDED', {
-      ip: clientIP,
-      endpoint: 'create-payment',
-      resetTime: new Date(rateLimitResult.resetTime).toISOString()
-    });
-    
-    return new Response(
-      JSON.stringify({ error: 'Muitas tentativas. Tente novamente mais tarde.' }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          "Content-Type": "application/json",
-          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
-          "X-RateLimit-Reset": rateLimitResult.resetTime.toString()
-        },
-        status: 429
-      }
-    );
+  const ip = getClientIP(req);
+  if (!checkRateLimit(ip)) {
+    return json({ error: "Muitas tentativas. Tente novamente dentro de um minuto." }, 429);
   }
 
   try {
-    const paymentData: PaymentRequest = await req.json();
-    
-    // Validate request data
-    if (!paymentData || typeof paymentData !== 'object') {
-      throw new Error('Dados de pagamento inválidos');
+    const parsed = BodySchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) {
+      return json({ error: "Dados da encomenda inválidos", details: parsed.error.flatten().fieldErrors }, 400);
     }
-    
-    if (!validateItems(paymentData.items)) {
-      throw new Error('Items de carrinho inválidos');
-    }
-    
-    if (!validateAddress(paymentData.deliveryAddress)) {
-      throw new Error('Dados de entrega inválidos');
-    }
-    
-    if (paymentData.notes && paymentData.notes.length > 500) {
-      throw new Error('Notas excedem o limite de caracteres');
-    }
-    
-    if (paymentData.guestEmail && !validateEmail(paymentData.guestEmail)) {
-      throw new Error('Email de convidado inválido');
-    }
-    
-    // Public client is used only to validate an optional user token.
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
-    // All order and product reads/writes use the server-side service role.
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    const body = parsed.data;
 
-    let user = null;
-    let customerId = undefined;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const anon = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY") ?? "");
+    const admin = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", {
+      auth: { persistSession: false },
+    });
 
-    // Try to get authenticated user
+    // Utilizador autenticado (opcional)
+    let user: { id: string; email?: string } | null = null;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
-      try {
-        const token = authHeader.replace("Bearer ", "");
-        const { data } = await supabaseClient.auth.getUser(token);
-        user = data.user;
-      } catch (error) {
-        // Log potential authentication issues for security monitoring
-        logSecurityEvent('AUTH_TOKEN_INVALID', {
-          ip: clientIP,
-          userAgent: req.headers.get('user-agent'),
-        });
-      }
+      const { data } = await anon.auth.getUser(authHeader.replace("Bearer ", ""));
+      if (data?.user) user = { id: data.user.id, email: data.user.email ?? undefined };
     }
 
-    const customerEmail = user?.email || paymentData.guestEmail;
-    
-    if (!customerEmail) {
-      throw new Error("Email é obrigatório");
+    const customerEmail = user?.email || body.guestEmail;
+    if (!customerEmail) return json({ error: "Email é obrigatório" }, 400);
+
+    // Juntar linhas repetidas (mesmo produto + estado)
+    const merged = new Map<string, { id: string; state: string; quantity: number }>();
+    for (const it of body.items) {
+      const key = `${it.id}:${it.state}`;
+      const prev = merged.get(key);
+      merged.set(key, { ...it, quantity: (prev?.quantity ?? 0) + it.quantity });
     }
+    const lines = [...merged.values()];
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
-    });
-
-    // Check if a Stripe customer record exists
-    const customers = await stripe.customers.list({ email: customerEmail, limit: 1 });
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-    } else {
-      // Create new customer
-      const customer = await stripe.customers.create({
-        email: customerEmail,
-      });
-      customerId = customer.id;
-    }
-
-    // Prices and availability are authoritative only when read from the database.
-    const productIds = [...new Set(paymentData.items.map(item => item.id))];
-    const { data: products, error: productsError } = await supabaseAdmin
-      .from("products")
-      .select("id, name, price, stock, available")
-      .in("id", productIds);
-
+    // Preço, stock, disponibilidade e defeso vêm SEMPRE da base de dados
+    const ids = [...new Set(lines.map((l) => l.id))];
+    const { data: products, error: productsError } = await admin.from("products").select("*").in("id", ids);
     if (productsError) throw productsError;
-    if (!products || products.length !== productIds.length) {
-      return new Response(JSON.stringify({ error: "Um ou mais produtos já não estão disponíveis." }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409
-      });
-    }
 
-    const productById = new Map(products.map(product => [product.id, product]));
-    for (const item of paymentData.items) {
-      const product = productById.get(item.id);
-      if (!product || product.available !== true || Number(product.stock) < item.quantity) {
-        return new Response(JSON.stringify({ error: "Produto indisponível ou stock insuficiente." }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409
-        });
+    const byId = new Map((products ?? []).map((p: any) => [p.id, p]));
+    const problems: Array<{ id: string; name: string; reason: string }> = [];
+    const qtyByProduct = new Map<string, number>();
+    for (const l of lines) qtyByProduct.set(l.id, (qtyByProduct.get(l.id) ?? 0) + l.quantity);
+
+    for (const [id, qty] of qtyByProduct) {
+      const p = byId.get(id);
+      if (!p) {
+        problems.push({ id, name: "Produto", reason: "Indisponível" });
+        continue;
+      }
+      const block = saleBlock(p, qty);
+      if (block) problems.push({ id, name: p.name, reason: SALE_BLOCK_LABELS[block] });
+    }
+    for (const l of lines) {
+      const p = byId.get(l.id);
+      if (p && Array.isArray(p.states) && !p.states.includes(l.state)) {
+        problems.push({ id: l.id, name: p.name, reason: `Não disponível ${l.state.toLowerCase()}` });
       }
     }
+    if (problems.length > 0) {
+      return json({ error: "Alguns produtos já não podem ser comprados", problems }, 409);
+    }
 
-    const trustedItems = paymentData.items.map(item => {
-      const product = productById.get(item.id)!;
-      return { id: item.id, name: product.name, price: Number(product.price), quantity: item.quantity, state: item.state };
+    const priced = lines.map((l) => {
+      const p = byId.get(l.id)!;
+      return { ...l, name: p.name as string, price: roundCents(Number(p.price)) };
     });
+    const { subtotal, deliveryFee, total } = calcTotals(priced);
 
-    const lineItems = trustedItems.map(item => ({
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
+
+    const customers = await stripe.customers.list({ email: customerEmail, limit: 1 });
+    const customerId =
+      customers.data[0]?.id ?? (await stripe.customers.create({ email: customerEmail })).id;
+
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priced.map((l) => ({
       price_data: {
         currency: "eur",
-        product_data: { name: `${item.name} (${item.state})` },
-        unit_amount: Math.round(item.price * 100),
+        product_data: { name: `${l.name} (${l.state === "CRU" ? "Cru" : "Cozido"})` },
+        unit_amount: Math.round(l.price * 100),
       },
-      quantity: item.quantity,
+      quantity: l.quantity,
     }));
-
-    const subtotal = trustedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const deliveryFee = subtotal >= 30 ? 0 : 4.99;
-
     if (deliveryFee > 0) {
       lineItems.push({
-        price_data: {
-          currency: "eur",
-          product_data: { name: "Taxa de Entrega" },
-          unit_amount: Math.round(deliveryFee * 100),
-        },
+        price_data: { currency: "eur", product_data: { name: "Taxa de entrega" }, unit_amount: Math.round(deliveryFee * 100) },
         quantity: 1,
       });
     }
 
-    const totalAmount = subtotal + deliveryFee;
-
-    // Create checkout session
+    const origin = req.headers.get("origin") ?? "https://marisca.lovable.app";
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: lineItems,
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/checkout`,
-      payment_method_types: ['card'],
-      automatic_tax: {
-        enabled: false,
-      },
-      shipping_address_collection: {
-        allowed_countries: ['PT'],
-      },
-      metadata: {
-        user_id: user?.id || 'guest',
-        guest_email: paymentData.guestEmail || '',
-        delivery_time_slot: paymentData.deliveryTimeSlot || '',
-        notes: paymentData.notes || '',
-        delivery_address: JSON.stringify(paymentData.deliveryAddress),
-      },
+      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/checkout?cancelado=1`,
+      payment_method_types: ["card"],
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+      metadata: { user_id: user?.id ?? "guest" },
     });
 
-    // Create pending order in database
-    const orderData = {
-      user_id: user?.id || null,
-      guest_email: paymentData.guestEmail || null,
-      status: 'pendente' as const,
-      total_amount: totalAmount,
-      delivery_fee: deliveryFee,
-      delivery_address: paymentData.deliveryAddress,
-      delivery_time_slot: paymentData.deliveryTimeSlot,
-      notes: paymentData.notes,
-      stripe_session_id: session.id,
-      payment_status: 'pending',
-    };
-
-    const { data: order, error: orderError } = await supabaseAdmin
-      .from('orders')
-      .insert(orderData)
-      .select()
+    const { data: order, error: orderError } = await admin
+      .from("orders")
+      .insert({
+        user_id: user?.id ?? null,
+        guest_email: user ? null : body.guestEmail ?? null,
+        status: "pendente",
+        total_amount: total,
+        delivery_fee: deliveryFee,
+        delivery_address: body.deliveryAddress,
+        delivery_time_slot: body.deliveryTimeSlot,
+        notes: body.notes ?? null,
+        stripe_session_id: session.id,
+        payment_status: "pending",
+      })
+      .select("id")
       .single();
-
     if (orderError) throw orderError;
 
-    // Insert order items
-    const orderItems = trustedItems.map(item => ({
-      order_id: order.id,
-      product_id: item.id,
-      quantity: item.quantity,
-      state: item.state as "CRU" | "COZIDO",
-      unit_price: item.price,
-    }));
-
-    const { error: itemsError } = await supabaseAdmin
-      .from('order_items')
-      .insert(orderItems);
-
+    const { error: itemsError } = await admin.from("order_items").insert(
+      priced.map((l) => ({
+        order_id: order.id,
+        product_id: l.id,
+        quantity: l.quantity,
+        state: l.state,
+        unit_price: l.price,
+      })),
+    );
     if (itemsError) throw itemsError;
 
-    // Log successful payment creation
-    logSecurityEvent('PAYMENT_CREATED', {
-      orderId: order.id,
-      userId: user?.id || 'guest',
-      email: customerEmail,
-      amount: totalAmount,
-      ip: clientIP
-    });
-
-    return new Response(JSON.stringify({ 
-      url: session.url,
-      order_id: order.id 
-    }), {
-      headers: { 
-        ...corsHeaders, 
-        "Content-Type": "application/json",
-        "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
-        "X-RateLimit-Reset": rateLimitResult.resetTime.toString()
-      },
-      status: 200,
-    });
-
+    console.log("[PAYMENT_CREATED]", { orderId: order.id, subtotal, deliveryFee, total });
+    return json({ url: session.url, order_id: order.id });
   } catch (error) {
-    // Log security-relevant errors
-    logSecurityEvent('PAYMENT_ERROR', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      ip: clientIP,
-      userAgent: req.headers.get('user-agent'),
-    });
-    
-    // Don't expose internal error details
-    const isValidationError = error instanceof Error && (
-      error.message.includes('inválido') || 
-      error.message.includes('limite') || 
-      error.message.includes('Email') ||
-      error.message === 'User not authenticated'
-    );
-    
-    const errorMessage = isValidationError ? error.message : 'Erro interno do servidor';
-    
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          "Content-Type": "application/json",
-          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
-          "X-RateLimit-Reset": rateLimitResult.resetTime.toString()
-        },
-        status: isValidationError ? 400 : 500
-      }
-    );
+    console.error("[PAYMENT_ERROR]", error instanceof Error ? error.message : error);
+    return json({ error: "Não foi possível iniciar o pagamento. Tente novamente." }, 500);
   }
 });
