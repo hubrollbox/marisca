@@ -173,7 +173,7 @@ const ProductDetail = () => {
         {/* Additional Info Tabs */}
         <div className="mt-12">
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6">
+            <TabsList className="flex w-full overflow-x-auto justify-start">
               <TabsTrigger value="details">Detalhes</TabsTrigger>
               <TabsTrigger value="sensory">Sensorial</TabsTrigger>
               <TabsTrigger value="conservation">Conservação</TabsTrigger>
