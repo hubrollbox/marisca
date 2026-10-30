@@ -103,7 +103,7 @@ export function CartFooter() {
                   size="icon"
                   className="h-8 w-8"
                   aria-label="Aumentar"
-                  disabled={item.block !== null && item.block !== "insufficient_stock" ? true : item.block === "insufficient_stock"}
+                  disabled={item.block !== null}
                   onClick={() => updateQuantity(item.product.id, item.state, item.quantity + 1)}
                 >
                   <Plus className="h-3 w-3" />
