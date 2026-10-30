@@ -1,200 +1,174 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { useProducts, Product } from "../hooks/use-products";
+import { useProduct, type ProductState } from "../hooks/use-products";
 import { useCart } from "../hooks/use-cart";
 import { useToast } from "../hooks/use-toast";
 import { Header } from "../components/Header";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { CartFooter } from "../components/ui/cart-footer";
 import { Footer } from "../components/Footer";
+import { SEO } from "../components/SEO";
+import { AvailabilityBadge, STATE_LABELS } from "../components/ui/product-card";
+import { saleBlock, SALE_BLOCK_LABELS } from "../lib/pricing";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: products, isLoading } = useProducts();
-  const { items, addItem, updateQuantity, removeItem } = useCart();
+  const { data: product, isLoading, isError, refetch } = useProduct(id);
+  const { items, addItem } = useCart();
   const { toast } = useToast();
 
-  const [selectedState, setSelectedState] = useState<"CRU" | "COZIDO" | "GRELHADO">("CRU");
+  const [selectedState, setSelectedState] = useState<ProductState>("CRU");
   const [quantity, setQuantity] = useState(1);
 
-  const product = products?.find((p: Product) => p.id === id);
-
-  const handleAddToCart = () => {
-    if (product) {
-      addItem(product, quantity, selectedState);
-      toast({
-        title: "Produto adicionado",
-        description: `${product.name} foi adicionado ao carrinho`,
-      });
-    }
-  };
-
-  const handleUpdateQuantity = (productId: string, state: "CRU" | "COZIDO" | "GRELHADO", newQuantity: number) => {
-    updateQuantity(productId, state, newQuantity);
-  };
-
-  const handleRemoveItem = (productId: string, state: "CRU" | "COZIDO" | "GRELHADO") => {
-    removeItem(productId, state);
-  };
-
-  const onCheckout = () => {
-    navigate("/checkout");
-  };
+  useEffect(() => {
+    if (product && !product.states.includes(selectedState)) setSelectedState(product.states[0]);
+  }, [product, selectedState]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="A carregar">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
 
-  if (!product) {
+  if (isError || !product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <Card className="p-8 text-center">
-          <h2 className="text-2xl font-bold mb-2">Produto não encontrado</h2>
+          <h2 className="text-2xl font-heading font-bold mb-2">
+            {isError ? "Não foi possível carregar o produto" : "Produto não encontrado"}
+          </h2>
           <p className="text-muted-foreground mb-4">
-            O produto que procura não existe ou foi removido
+            {isError ? "Verifique a ligação e tente novamente." : "O produto que procura não existe ou foi removido"}
           </p>
-          <Button onClick={() => navigate("/produtos")}>
-            Ver todos os produtos
-          </Button>
+          <div className="flex gap-2 justify-center">
+            {isError && (
+              <Button variant="outline" onClick={() => refetch()}>
+                Tentar novamente
+              </Button>
+            )}
+            <Button onClick={() => navigate("/produtos")}>Ver todos os produtos</Button>
+          </div>
         </Card>
       </div>
     );
   }
 
+  const inCart = items.filter((i) => i.product.id === product.id).reduce((s, i) => s + i.quantity, 0);
+  const block = saleBlock(product, inCart + quantity);
+  const canIncrease = product.stock === null || inCart + quantity < product.stock;
+
+  const handleAddToCart = () => {
+    addItem(product, quantity, selectedState);
+    toast({
+      title: "Produto adicionado",
+      description: `${quantity}x ${product.name} (${STATE_LABELS[selectedState]})`,
+    });
+    setQuantity(1);
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={`${product.name} | Marisca`}
+        description={product.description || `${product.name} fresco, da lota para a sua mesa em poucas horas.`}
+        canonical={`https://marisca.pt/produtos/${product.id}`}
+      />
       <Header />
 
       <main className="container mx-auto px-4 pb-32">
-        <Breadcrumbs 
-          items={[
-            { label: "Produtos", path: "/produtos" },
-            { label: product.name }
-          ]}
-        />
+        <Breadcrumbs items={[{ label: "Produtos", path: "/produtos" }, { label: product.name }]} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Product Image */}
-          <div className="space-y-4">
-            <div className="aspect-square rounded-lg overflow-hidden bg-muted">
-              {product.image_url ? (
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "/placeholder.svg";
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <p className="text-muted-foreground text-lg font-medium">
-                      Foto em breve
-                    </p>
-                    <p className="text-muted-foreground text-sm mt-2">
-                      Produto disponível para encomenda
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
+          <div className="aspect-square rounded-lg overflow-hidden bg-muted">
+            {product.image_url ? (
+              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <p className="text-muted-foreground text-lg font-medium">Foto em breve</p>
+              </div>
+            )}
           </div>
 
-          {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-              {product.description && (
-                <p className="text-muted-foreground text-lg">
-                  {product.description}
-                </p>
-              )}
+              <h1 className="text-3xl font-heading font-bold mb-2">{product.name}</h1>
+              {product.scientific_name && <p className="text-muted-foreground italic mb-2">{product.scientific_name}</p>}
+              {product.description && <p className="text-muted-foreground text-lg">{product.description}</p>}
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="text-3xl font-bold text-primary">
-                €{product.price}
-              </div>
-              {product.weight && (
-                <Badge variant="secondary">
-                  {product.weight}
-                </Badge>
-              )}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="text-3xl font-bold text-primary">€{product.price.toFixed(2)}</div>
+              {product.weight && <Badge variant="outline">{product.weight}</Badge>}
+              <AvailabilityBadge product={product} />
             </div>
 
-            {!product.available && (
-              <Badge variant="destructive">
-                Indisponível
-              </Badge>
+            {product.in_closed_season && product.closed_season && (
+              <p className="text-sm text-muted-foreground">Período de defeso: {product.closed_season}</p>
             )}
 
-            {product.available && (
-              <div className="space-y-4">
-                {/* State Selection */}
-                {product.states && product.states.length > 1 && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Preparação:</label>
-                    <div className="flex gap-2">
-                      {product.states.map((state: "CRU" | "COZIDO" | "GRELHADO") => (
-                        <Button
-                          key={state}
-                          variant={selectedState === state ? "default" : "outline"}
-                          onClick={() => setSelectedState(state)}
-                          className="flex-1"
-                        >
-                          {state === "CRU" ? "Cru" : state === "COZIDO" ? "Cozido" : "Grelhado"}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Quantity Selection */}
+            <div className="space-y-4">
+              {product.states.length > 1 && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Quantidade:</label>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <div className="w-16 text-center font-medium">{quantity}</div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(quantity + 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                  <span className="text-sm font-medium">Preparação:</span>
+                  <div className="flex gap-2">
+                    {product.states.map((state) => (
+                      <Button
+                        key={state}
+                        variant={selectedState === state ? "default" : "outline"}
+                        onClick={() => setSelectedState(state)}
+                        className="flex-1"
+                        aria-pressed={selectedState === state}
+                      >
+                        {STATE_LABELS[state]}
+                      </Button>
+                    ))}
                   </div>
                 </div>
+              )}
 
-                {/* Add to Cart Button */}
-                <Button 
-                  onClick={handleAddToCart}
-                  size="lg"
-                  className="w-full"
-                >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  Adicionar ao Carrinho
-                </Button>
+              <div className="space-y-2">
+                <span className="text-sm font-medium">Quantidade:</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                    aria-label="Diminuir quantidade"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <div className="w-16 text-center font-medium">{quantity}</div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(quantity + 1)}
+                    disabled={!canIncrease}
+                    aria-label="Aumentar quantidade"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                {product.stock !== null && product.stock > 0 && product.stock <= 5 && (
+                  <p className="text-xs text-muted-foreground">Restam {product.stock} unidades</p>
+                )}
               </div>
-            )}
+
+              <Button onClick={handleAddToCart} size="lg" variant="cta" className="w-full" disabled={!!block}>
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                {block ? SALE_BLOCK_LABELS[block] : "Adicionar ao Carrinho"}
+              </Button>
+            </div>
           </div>
         </div>
+
 
         {/* Additional Info Tabs */}
         <div className="mt-12">

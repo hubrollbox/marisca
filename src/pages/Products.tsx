@@ -74,55 +74,42 @@ const Products = () => {
           </p>
         </header>
 
-        {/* Category Filter */}
-        <nav className="flex gap-2 mb-8 overflow-x-auto pb-2" aria-label="Filtros de categoria">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
-                selectedCategory === category
-                  ? "bg-primary text-white"
-                  : "bg-muted hover:bg-muted/80"
-              }`}
-              aria-pressed={selectedCategory === category}
-            >
-              {category === "all" ? "Todos" : category}
-            </button>
-          ))}
-        </nav>
+        {categories.length > 1 && (
+          <nav className="flex gap-2 mb-8 overflow-x-auto pb-2" aria-label="Filtros de categoria">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={cn(
+                  "px-4 py-2 rounded-full whitespace-nowrap transition-all",
+                  selectedCategory === category
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground hover:bg-muted/80",
+                )}
+                aria-pressed={selectedCategory === category}
+              >
+                {category === "all" ? "Todos" : category}
+              </button>
+            ))}
+          </nav>
+        )}
 
-        {/* Products Grid */}
-        {filteredProducts.length === 0 ? (
+        {isError ? (
+          <Card className="p-8 text-center space-y-3">
+            <p className="text-muted-foreground">Não foi possível carregar os produtos.</p>
+            <Button variant="outline" onClick={() => refetch()}>
+              Tentar novamente
+            </Button>
+          </Card>
+        ) : filteredProducts.length === 0 ? (
           <Card className="p-8 text-center">
             <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
-            <p className="text-muted-foreground">
-              Tente ajustar a sua pesquisa ou volte mais tarde
-            </p>
+            <p className="text-muted-foreground">Tente ajustar a sua pesquisa ou volte mais tarde</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product: Product) => (
-              <ProductCard
-                key={product.id}
-                product={{
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  image: product.image_url || "/placeholder.svg",
-                  weight: product.weight || "",
-                  available: product.available,
-                  states: product.states,
-                  prepTime: product.prep_time || "",
-                  description: product.description || "",
-                  stock: product.stock,
-                  origin: product.origin || "",
-                  scientific_name: product.scientific_name || "",
-                  ideal_conservation: product.ideal_conservation || "",
-                  consumption_suggestion: product.consumption_suggestion || "",
-                }}
-                onAddToCart={addToCart}
-              />
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
@@ -130,14 +117,7 @@ const Products = () => {
 
       <Footer />
 
-      {items.length > 0 && (
-        <CartFooter
-          items={items}
-          onUpdateQuantity={handleUpdateQuantity}
-          onRemoveItem={handleRemoveItem}
-          onCheckout={onCheckout}
-        />
-      )}
+      <CartFooter />
     </div>
   );
 };
