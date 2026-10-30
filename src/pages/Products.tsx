@@ -1,10 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Card } from "../components/ui/card";
-import { useProducts, Product } from "../hooks/use-products";
-import { useCart } from "../hooks/use-cart";
-import { useToast } from "../hooks/use-toast";
+import { Button } from "../components/ui/button";
+import { useProducts } from "../hooks/use-products";
 import { Header } from "../components/Header";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { ProductCard } from "../components/ui/product-card";
@@ -12,48 +10,36 @@ import { CartFooter } from "../components/ui/cart-footer";
 import { Footer } from "../components/Footer";
 import { SEO } from "../components/SEO";
 import { generateBreadcrumbSchema } from "../utils/schema-markup";
+import { cn } from "../lib/utils";
 
 const Products = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const { data: products, isLoading } = useProducts();
-  const { items, addItem, updateQuantity, removeItem } = useCart();
-  const { toast } = useToast();
+  const { data: products, isLoading, isError, refetch } = useProducts();
 
-  const categories = ["all", "Crustáceos", "Bivalves", "Moluscos", "Peixes"];
+  // Categorias tiradas dos próprios produtos (sem listas fixas que se desatualizam)
+  const categories = useMemo(() => {
+    const set = new Set((products ?? []).map((p) => p.category).filter(Boolean) as string[]);
+    return ["all", ...[...set].sort((a, b) => a.localeCompare(b, "pt"))];
+  }, [products]);
 
-  const filteredProducts = products?.filter((product: Product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  }) || [];
-
-  const addToCart = (product: Product, quantity: number, state: "CRU" | "COZIDO" | "GRELHADO") => {
-    addItem(product, quantity, state);
-    toast({ title: "Adicionado ao carrinho", description: `${quantity}x ${product.name} (${state})` });
-  };
-
-  const handleUpdateQuantity = (productId: string, state: "CRU" | "COZIDO" | "GRELHADO", newQuantity: number) => {
-    updateQuantity(productId, state, newQuantity);
-  };
-
-  const handleRemoveItem = (productId: string, state: "CRU" | "COZIDO" | "GRELHADO") => {
-    removeItem(productId, state);
-  };
-
-  const onCheckout = () => {
-    navigate("/checkout");
-  };
+  const term = searchTerm.toLowerCase();
+  const filteredProducts =
+    products?.filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(term) || product.description?.toLowerCase().includes(term);
+      const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    }) || [];
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="A carregar">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-background">
