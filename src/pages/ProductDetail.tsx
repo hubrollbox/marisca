@@ -355,14 +355,7 @@ const ProductDetail = () => {
 
       <Footer />
 
-      {items.length > 0 && (
-        <CartFooter
-          items={items}
-          onUpdateQuantity={handleUpdateQuantity}
-          onRemoveItem={handleRemoveItem}
-          onCheckout={onCheckout}
-        />
-      )}
+      <CartFooter />
     </div>
   );
 };
