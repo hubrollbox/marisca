@@ -29,84 +29,75 @@ serve(async (req) => {
       throw new Error("Missing Stripe signature");
     }
 
-    // Verify webhook signature
+    // Verificar autenticidade: assinatura (se houver segredo) ou confirmação junto da Stripe
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     let event: Stripe.Event;
 
     if (webhookSecret) {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
     } else {
-      event = JSON.parse(body);
-      console.warn("⚠️ Webhook signature verification skipped (no secret configured)");
+      const unverified = JSON.parse(body);
+      if (!unverified?.id || typeof unverified.id !== "string") throw new Error("Invalid event");
+      // Sem segredo configurado: só confiamos no evento tal como a Stripe o devolve
+      event = await stripe.events.retrieve(unverified.id);
+      console.warn("⚠️ STRIPE_WEBHOOK_SECRET em falta — evento confirmado via API da Stripe");
     }
 
     console.log(`🔔 Webhook received: ${event.type}`);
 
-    // Handle the event
     switch (event.type) {
-      case "checkout.session.completed": {
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as Stripe.Checkout.Session;
-        console.log("✅ Checkout session completed:", session.id);
-        
-        // Update order status
+        if (session.payment_status !== "paid") {
+          console.log("⏳ Session completed but not paid yet:", session.id);
+          break;
+        }
+
+        // Só atualiza se ainda não estava paga (a Stripe pode repetir eventos)
         const { data: order, error: orderError } = await supabase
           .from("orders")
           .update({
             payment_status: "paid",
             status: "confirmado",
-            stripe_payment_intent_id: typeof session.payment_intent === 'string' 
-              ? session.payment_intent 
+            stripe_payment_intent_id: typeof session.payment_intent === "string"
+              ? session.payment_intent
               : (session.payment_intent as Stripe.PaymentIntent | null)?.id ?? null,
           })
           .eq("stripe_session_id", session.id)
+          .neq("payment_status", "paid")
           .select("id, user_id, total_amount, delivery_fee, delivery_address, delivery_time_slot, guest_email")
-          .single();
+          .maybeSingle();
 
         if (orderError) {
           console.error("Error updating order:", orderError);
           throw orderError;
         }
+        if (!order) {
+          console.log("ℹ️ Order already processed or not found:", session.id);
+          break;
+        }
 
-        console.log("📦 Order updated:", order.id);
-
-        // Decrease product stock in background
+        console.log("📦 Order paid:", order.id);
         EdgeRuntime.waitUntil(decreaseStockForOrder(order.id));
-
-        // Send order confirmation email in background
         EdgeRuntime.waitUntil(sendOrderConfirmation(order));
-
         break;
       }
 
-      case "checkout.session.expired": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        console.log("⌛ Checkout session expired:", session.id);
-
-        await supabase
-          .from("orders")
-          .update({ 
-            payment_status: "failed",
-            status: "cancelada"
-          })
-          .eq("stripe_session_id", session.id);
-
-        break;
-      }
-
+      case "checkout.session.expired":
       case "checkout.session.async_payment_failed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        console.log("❌ Async payment failed:", session.id);
+        console.log(`❌ ${event.type}:`, session.id);
 
-        await supabase
+        const { error } = await supabase
           .from("orders")
-          .update({ 
-            payment_status: "failed",
-            status: "cancelada"
-          })
-          .eq("stripe_session_id", session.id);
-
+          .update({ payment_status: "failed", status: "cancelado" })
+          .eq("stripe_session_id", session.id)
+          .neq("payment_status", "paid");
+        if (error) console.error("Error cancelling order:", error);
         break;
       }
+
 
       default:
         console.log(`ℹ️ Unhandled event type: ${event.type}`);

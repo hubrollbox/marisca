@@ -169,3 +169,5 @@ enabled = false
 port = 54327
 vector_port = 54328
 gw_port = 54329
+[functions.order-status]
+verify_jwt = false
