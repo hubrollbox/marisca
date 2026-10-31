@@ -111,6 +111,7 @@ All colors MUST be HSL.
     
     --shadow-elegant: 0 10px 30px -10px hsl(0 0% 0% / 0.5);
     --shadow-glow: 0 0 40px hsl(6 68% 62% / 0.3);
+    --shadow-float: 0 18px 40px -16px hsl(0 0% 0% / 0.6);
     
     --sidebar-background: 214 78% 8%;
     --sidebar-foreground: 38 22% 85%;
@@ -129,6 +130,14 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-heading;
+  }
+
+  blockquote {
+    @apply font-quote italic;
   }
 }
