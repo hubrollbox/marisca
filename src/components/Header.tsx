@@ -71,7 +71,7 @@ export const Header = ({
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-gradient-ocean border-l-white/20">
+            <SheetContent side="right" className="bg-gradient-ocean border-l-primary-foreground/20">
               <nav className="flex flex-col gap-4 mt-8">
                 {navigationLinks.map((link) => (
                   <Button
