@@ -22,19 +22,28 @@ All colors MUST be HSL.
     --popover-foreground: 214 78% 15%;
     
     /* Areia Quente (Secundária) #C4B7A6 */
-    --secondary: 38 22% 70%;
+    --secondary: 34 20% 71%;
     --secondary-foreground: 214 78% 15%;
     
     /* Vermelho Coral (Acento) #E36355 */
-    --accent: 6 68% 62%;
-    --accent-foreground: 0 0% 100%;
+    /* Coral só nos CTAs. Texto azul profundo sobre coral = contraste 4.6:1 (WCAG AA) */
+    --accent: 6 72% 61%;
+    --accent-foreground: 214 78% 15%;
+
+    /* Areia clara para fundos suaves */
+    --cream: 34 25% 94%;
+    --cream-foreground: 214 78% 15%;
+
+    /* Estados (confirmações) */
+    --success: 152 55% 28%;
+    --success-foreground: 0 0% 100%;
     
     /* Grafite Marinho (Utilitária) #1D1D1D */
     --muted: 38 22% 85%;
     --muted-foreground: 0 0% 11%;
     
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 70% 42%;
+    --destructive-foreground: 0 0% 100%;
     
     --border: 38 22% 85%;
     --input: 38 22% 85%;
@@ -47,7 +56,8 @@ All colors MUST be HSL.
     
     /* Shadows with brand colors */
     --shadow-elegant: 0 10px 30px -10px hsl(214 78% 15% / 0.3);
-    --shadow-glow: 0 0 40px hsl(6 68% 62% / 0.4);
+    --shadow-glow: 0 0 40px hsl(6 72% 61% / 0.4);
+    --shadow-float: 0 18px 40px -16px hsl(214 78% 15% / 0.35);
     
     --radius: 0.5rem;
     
@@ -72,8 +82,8 @@ All colors MUST be HSL.
     --popover: 214 60% 12%;
     --popover-foreground: 38 22% 85%;
     
-    --primary: 6 68% 62%; /* Coral accent as primary in dark */
-    --primary-foreground: 0 0% 100%;
+    --primary: 38 22% 85%;
+    --primary-foreground: 214 78% 15%;
     
     --secondary: 38 22% 25%;
     --secondary-foreground: 38 22% 85%;
@@ -81,8 +91,12 @@ All colors MUST be HSL.
     --muted: 214 60% 15%;
     --muted-foreground: 38 22% 65%;
     
-    --accent: 6 68% 62%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 6 72% 61%;
+    --accent-foreground: 214 78% 15%;
+    --cream: 214 60% 14%;
+    --cream-foreground: 38 22% 85%;
+    --success: 152 45% 45%;
+    --success-foreground: 214 78% 8%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
