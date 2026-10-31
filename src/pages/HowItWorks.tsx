@@ -56,7 +56,7 @@ const HowItWorks = () => {
 
         <main className="flex-1 container mx-auto px-4 py-12 max-w-6xl">
           {/* Hero Section */}
-          <div className="text-center mb-16 py-20 rounded-lg bg-gradient-ocean text-white">
+          <div className="text-center mb-16 py-20 rounded-lg bg-gradient-ocean text-primary-foreground">
             <div className="flex justify-center mb-6">
               <Anchor className="h-16 w-16" />
             </div>
@@ -76,7 +76,7 @@ const HowItWorks = () => {
                 <CardContent className="pt-8 relative z-10">
                   <div className="flex justify-center mb-6">
                     <div className="w-16 h-16 rounded-full bg-gradient-ocean flex items-center justify-center">
-                      <step.icon className="h-8 w-8 text-white" />
+                      <step.icon className="h-8 w-8 text-primary-foreground" />
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-center text-primary">

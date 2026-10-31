@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,11 +19,12 @@ interface Address {
   is_default: boolean;
 }
 
+const POSTAL_CODE = /^\d{4}-\d{3}$/;
+
 export const AddressManager = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [formData, setFormData] = useState({
@@ -33,55 +35,55 @@ export const AddressManager = () => {
     is_default: false,
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchAddresses();
-    }
-  }, [user]);
-
-  const fetchAddresses = async () => {
-    try {
+  const { data: addresses = [], isLoading: loading } = useQuery({
+    queryKey: ["addresses", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("addresses")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user!.id)
         .order("is_default", { ascending: false });
-
       if (error) throw error;
-      setAddresses(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Erro ao carregar endereços",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+      return (data ?? []) as Address[];
+    },
+  });
+
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["addresses", user?.id] });
+    queryClient.invalidateQueries({ queryKey: ["default-address", user?.id] });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    if (!user) return;
+    const clean = {
+      name: formData.name.trim(),
+      street: formData.street.trim(),
+      city: formData.city.trim(),
+      postal_code: formData.postal_code.trim(),
+      is_default: formData.is_default,
+    };
+    if (!clean.name || !clean.street || !clean.city || !POSTAL_CODE.test(clean.postal_code)) {
+      toast({
+        title: "Verifique os dados",
+        description: "Preencha todos os campos. Código postal no formato 0000-000.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      const addressData = {
-        ...formData,
-        user_id: user?.id,
-      };
-
+      // Só pode haver uma morada favorita
+      if (clean.is_default) {
+        await supabase.from("addresses").update({ is_default: false }).eq("user_id", user.id);
+      }
       if (editingAddress) {
-        const { error } = await supabase
-          .from("addresses")
-          .update(addressData)
-          .eq("id", editingAddress.id);
-
+        const { error } = await supabase.from("addresses").update(clean).eq("id", editingAddress.id);
         if (error) throw error;
         toast({ title: "Endereço atualizado com sucesso" });
       } else {
-        const { error } = await supabase
-          .from("addresses")
-          .insert(addressData);
-
+        const { error } = await supabase.from("addresses").insert({ ...clean, user_id: user.id });
         if (error) throw error;
         toast({ title: "Endereço adicionado com sucesso" });
       }
@@ -89,32 +91,22 @@ export const AddressManager = () => {
       setDialogOpen(false);
       setEditingAddress(null);
       setFormData({ name: "", street: "", city: "", postal_code: "", is_default: false });
-      fetchAddresses();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao salvar endereço",
-        description: error.message,
-        variant: "destructive",
-      });
+      refresh();
+    } catch (error) {
+      console.error("Address save error:", error);
+      toast({ title: "Erro ao guardar endereço", description: "Tente novamente.", variant: "destructive" });
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("addresses")
-        .delete()
-        .eq("id", id);
-
+      const { error } = await supabase.from("addresses").delete().eq("id", id);
       if (error) throw error;
       toast({ title: "Endereço removido" });
-      fetchAddresses();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao remover endereço",
-        description: error.message,
-        variant: "destructive",
-      });
+      refresh();
+    } catch (error) {
+      console.error("Address delete error:", error);
+      toast({ title: "Erro ao remover endereço", description: "Tente novamente.", variant: "destructive" });
     }
   };
 

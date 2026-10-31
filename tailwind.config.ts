@@ -13,6 +13,11 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Lato', 'system-ui', 'sans-serif'],
+        heading: ['Montserrat', 'system-ui', 'sans-serif'],
+        quote: ['"Playfair Display"', 'Georgia', 'serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -38,6 +43,10 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
         },
         cream: {
           DEFAULT: "hsl(var(--cream))",
@@ -69,6 +78,7 @@ export default {
       },
       boxShadow: {
         'elegant': 'var(--shadow-elegant)',
+        'float': 'var(--shadow-float)',
         'glow': 'var(--shadow-glow)',
       },
       borderRadius: {

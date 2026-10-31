@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,98 +7,51 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, Package, Clock, CheckCircle, Truck, User, LogOut, Loader2 } from "lucide-react";
+import { ArrowLeft, Package, User, LogOut, Loader2 } from "lucide-react";
 import { AddressManager } from "@/components/AddressManager";
+import { STATE_LABELS } from "@/components/ui/product-card";
+import {
+  ORDER_STATUS_CLASSES,
+  ORDER_STATUS_ICONS,
+  ORDER_STATUS_LABELS,
+  isOrderStatus,
+} from "@/lib/order-status";
 
 interface Order {
   id: string;
   status: string;
+  payment_status: string | null;
   total_amount: number;
   delivery_fee: number;
   delivery_time_slot?: string | null;
   created_at: string;
-  delivery_address: any;
+  delivery_address: unknown;
   order_items: Array<{
     quantity: number;
     unit_price: number;
-    state: string;
-    products: {
-      name: string;
-      image_url?: string;
-    };
+    state: "CRU" | "COZIDO";
+    products: { name: string; image_url?: string | null } | null;
   }>;
 }
-
-const statusLabels = {
-  pendente: "Pendente",
-  confirmado: "Confirmado", 
-  preparado: "Preparado",
-  em_entrega: "Em Entrega",
-  entregue: "Entregue",
-  cancelado: "Cancelado"
-};
-
-const statusIcons = {
-  pendente: Clock,
-  confirmado: CheckCircle,
-  preparado: Package,
-  em_entrega: Truck,
-  entregue: CheckCircle,
-  cancelado: Clock
-};
-
-const statusColors = {
-  pendente: "bg-yellow-100 text-yellow-800",
-  confirmado: "bg-blue-100 text-blue-800", 
-  preparado: "bg-purple-100 text-purple-800",
-  em_entrega: "bg-orange-100 text-orange-800",
-  entregue: "bg-green-100 text-green-800",
-  cancelado: "bg-red-100 text-red-800"
-};
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, signOut, loading } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchOrders();
-    }
-  }, [user]);
-
-  const fetchOrders = async () => {
-    try {
+  const { data: orders = [], isLoading: loadingOrders, isError, refetch } = useQuery({
+    queryKey: ["my-orders", user?.id],
+    enabled: !!user,
+    refetchInterval: 60_000,
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select(`
-          *,
-          order_items (
-            quantity,
-            unit_price,
-            state,
-            products (
-              name,
-              image_url
-            )
-          )
-        `)
-        .eq("user_id", user?.id ?? "")
+        .select("*, order_items (quantity, unit_price, state, products (name, image_url))")
+        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
-
       if (error) throw error;
-      setOrders(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Erro ao carregar encomendas",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingOrders(false);
-    }
-  };
+      return (data ?? []) as unknown as Order[];
+    },
+  });
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -131,20 +84,12 @@ export default function Dashboard() {
         <div className="max-w-md mx-auto p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/")}
-              >
+              <Button variant="ghost" size="icon" onClick={() => navigate("/")} aria-label="Voltar">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-semibold">Dashboard</h1>
+              <h1 className="text-xl font-semibold">A Minha Conta</h1>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSignOut}
-            >
+            <Button variant="ghost" size="icon" onClick={handleSignOut} aria-label="Terminar sessão">
               <LogOut className="h-5 w-5" />
             </Button>
           </div>
@@ -176,7 +121,12 @@ export default function Dashboard() {
             <CardTitle className="text-lg">Minhas Encomendas</CardTitle>
           </CardHeader>
           <CardContent>
-            {loadingOrders ? (
+            {isError ? (
+              <div className="text-center py-8 space-y-3">
+                <p className="text-muted-foreground">Não foi possível carregar as encomendas.</p>
+                <Button variant="outline" onClick={() => refetch()}>Tentar novamente</Button>
+              </div>
+            ) : loadingOrders ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
@@ -184,18 +134,15 @@ export default function Dashboard() {
               <div className="text-center py-8">
                 <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">Ainda não tem encomendas</p>
-                <Button 
-                  onClick={() => navigate("/")}
-                  className="mt-4 bg-gradient-sunset"
-                >
+                <Button onClick={() => navigate("/")} variant="cta" className="mt-4">
                   Fazer primeira encomenda
                 </Button>
               </div>
             ) : (
               <div className="space-y-4">
                 {orders.map((order) => {
-                  const StatusIcon = statusIcons[order.status as keyof typeof statusIcons];
-                  const statusColor = statusColors[order.status as keyof typeof statusColors];
+                  const status = isOrderStatus(order.status) ? order.status : "pendente";
+                  const StatusIcon = ORDER_STATUS_ICONS[status];
                   const totalItems = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
 
                   return (
@@ -209,23 +156,25 @@ export default function Dashboard() {
                             {new Date(order.created_at).toLocaleDateString('pt-PT')}
                           </p>
                         </div>
-                        <Badge className={statusColor}>
+                        <Badge className={ORDER_STATUS_CLASSES[status]}>
                           <StatusIcon className="w-3 h-3 mr-1" />
-                          {statusLabels[order.status as keyof typeof statusLabels]}
+                          {order.payment_status === "pending" && status === "pendente"
+                            ? "A aguardar pagamento"
+                            : ORDER_STATUS_LABELS[status]}
                         </Badge>
                       </div>
 
                       <div className="space-y-2">
                         {order.order_items.slice(0, 2).map((item, index) => (
                           <div key={index} className="flex items-center gap-2 text-sm">
-                            <img 
-                              src={item.products.image_url || "/placeholder.svg"}
-                              alt={item.products.name}
-                              className="w-8 h-8 object-cover rounded"
-                            />
-                            <span className="flex-1">{item.products.name}</span>
+                            {item.products?.image_url ? (
+                              <img src={item.products.image_url} alt={item.products.name} className="w-8 h-8 object-cover rounded" />
+                            ) : (
+                              <div className="w-8 h-8 rounded bg-muted" aria-hidden />
+                            )}
+                            <span className="flex-1">{item.products?.name ?? "Produto"}</span>
                             <Badge variant="outline" className="text-xs">
-                              {item.state}
+                              {STATE_LABELS[item.state] ?? item.state}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
                               {item.quantity}x

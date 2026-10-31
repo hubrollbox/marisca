@@ -126,10 +126,10 @@ const ComplaintsBook = () => {
 
           {/* Success Message */}
           {complaintNumber && (
-            <Alert className="mb-8 bg-green-50 border-green-200">
-              <AlertCircle className="h-4 w-4 text-green-600" />
-              <AlertTitle className="text-green-800">Reclamação Registada</AlertTitle>
-              <AlertDescription className="text-green-700">
+            <Alert className="mb-8 border-success/40 bg-success/10">
+              <AlertCircle className="h-4 w-4 text-success" />
+              <AlertTitle className="text-success">Reclamação Registada</AlertTitle>
+              <AlertDescription className="text-foreground">
                 A sua reclamação foi registada com o número: <strong>{complaintNumber}</strong>
                 <br />
                 Guarde este número para referência futura.

@@ -9,11 +9,11 @@ export default function CookiePolicy() {
   return (
     <div className="min-h-screen bg-gradient-sand flex flex-col">
       {/* Header */}
-      <header className="bg-gradient-ocean text-white sticky top-0 z-40 shadow-elegant">
+      <header className="bg-gradient-ocean text-primary-foreground sticky top-0 z-40 shadow-elegant">
         <div className="max-w-4xl mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center gap-4">
             <Link to="/">
-              <Button variant="ghost" size="icon" className="hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10">
+              <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10 h-8 w-8 sm:h-10 sm:w-10">
                 <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </Link>
@@ -21,7 +21,7 @@ export default function CookiePolicy() {
               <MariscaLogo size="sm" variant="white" />
               <div>
                 <h1 className="text-base sm:text-lg font-bold">Política de Cookies</h1>
-                <p className="text-white/80 text-xs sm:text-sm">Marisca</p>
+                <p className="text-primary-foreground/80 text-xs sm:text-sm">Marisca</p>
               </div>
             </div>
           </div>

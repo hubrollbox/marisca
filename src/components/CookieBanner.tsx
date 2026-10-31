@@ -33,7 +33,7 @@ export const CookieBanner = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 animate-in slide-in-from-bottom duration-300">
-      <Card className="max-w-4xl mx-auto bg-gradient-ocean text-white border-none shadow-elegant">
+      <Card className="max-w-4xl mx-auto bg-gradient-ocean text-primary-foreground border-none shadow-elegant">
         <CardContent className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 space-y-3">
@@ -42,7 +42,7 @@ export const CookieBanner = () => {
                 Ao continuar a navegar, aceita a nossa{" "}
                 <Link 
                   to="/politica-cookies" 
-                  className="underline hover:text-white/80 transition-colors"
+                  className="underline hover:text-primary-foreground/80 transition-colors"
                   onClick={() => setIsVisible(false)}
                 >
                   Política de Cookies
@@ -61,7 +61,7 @@ export const CookieBanner = () => {
                   onClick={handleReject}
                   size="sm"
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
+                  className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
                 >
                   Recusar
                 </Button>
@@ -69,7 +69,7 @@ export const CookieBanner = () => {
                   <Button 
                     size="sm"
                     variant="ghost"
-                    className="text-white/80 hover:text-white hover:bg-white/10"
+                    className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
                   >
                     Saber Mais
                   </Button>
@@ -80,7 +80,7 @@ export const CookieBanner = () => {
               size="icon"
               variant="ghost"
               onClick={() => setIsVisible(false)}
-              className="text-white/80 hover:text-white hover:bg-white/10 shrink-0"
+              className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 shrink-0"
               aria-label="Fechar banner de cookies"
             >
               <X className="h-4 w-4" />

@@ -34,7 +34,7 @@ export const Header = ({
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-ocean text-white shadow-elegant">
+    <header className="sticky top-0 z-50 bg-gradient-ocean text-primary-foreground shadow-elegant">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between mb-4">
           <Link to="/" className="flex items-center">
@@ -49,7 +49,7 @@ export const Header = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate(link.path)}
-                className="text-white/80 hover:text-white hover:bg-white/10"
+                className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
               >
                 {link.label}
               </Button>
@@ -58,7 +58,7 @@ export const Header = ({
               variant="ghost"
               size="icon"
               onClick={() => user ? navigate("/dashboard") : navigate("/auth")}
-              className="hover:bg-white/10"
+              className="hover:bg-primary-foreground/10"
             >
               <User className="h-5 w-5" />
             </Button>
@@ -67,11 +67,11 @@ export const Header = ({
           {/* Mobile Menu */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon" className="hover:bg-white/10">
+              <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10">
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-gradient-ocean border-l-white/20">
+            <SheetContent side="right" className="bg-gradient-ocean border-l-primary-foreground/20">
               <nav className="flex flex-col gap-4 mt-8">
                 {navigationLinks.map((link) => (
                   <Button
@@ -81,7 +81,7 @@ export const Header = ({
                       navigate(link.path);
                       setMobileMenuOpen(false);
                     }}
-                    className="text-white/80 hover:text-white hover:bg-white/10 justify-start text-lg"
+                    className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 justify-start text-lg"
                   >
                     {link.label}
                   </Button>
@@ -92,7 +92,7 @@ export const Header = ({
                     user ? navigate("/dashboard") : navigate("/auth");
                     setMobileMenuOpen(false);
                   }}
-                  className="border-white/20 text-white hover:bg-white/10 justify-start text-lg"
+                  className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 justify-start text-lg"
                 >
                   <User className="h-5 w-5 mr-2" />
                   {user ? "Minha Conta" : "Login"}
@@ -110,7 +110,7 @@ export const Header = ({
               placeholder="Procurar marisco..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/60"
+              className="pl-10 bg-primary-foreground/10 backdrop-blur-sm border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
             />
           </div>
         )}
