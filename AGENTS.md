@@ -1,6 +1,8 @@
 # AGENTS.md
 
-- Sale rules (delivery fee, totals, stock, closed season, valid states) live in `src/lib/pricing.ts`, with an identical copy in `supabase/functions/_shared/pricing.ts`; keep both in sync — a test fails if they differ. Why: the shop and the payment server must compute the same totals.
+- The Supabase backend is managed outside Lovable: never create, delete or edit anything in `supabase/migrations/` or `supabase/functions/`, and never change the database, RLS policies or SQL functions. If a backend change is needed, write it in `docs/pedido-bd.md` and stop. Why: the backend has its own owner and deploy process.
+- The client never sends prices, totals or payment status, and never writes to `orders` or `order_items` directly. Why: those are server-authoritative.
+- Sale rules (delivery fee, totals, stock, closed season, valid states) live in `src/lib/pricing.ts`, mirrored by the server copy in `supabase/functions/_shared/pricing.ts` (read-only for us); a test fails if they differ — request server changes via `docs/pedido-bd.md`. Why: the shop and the payment server must compute the same totals.
 - The client only sends product id, quantity and state to `create-payment`; prices, stock and closed season are always read server-side. Why: client prices can be tampered with.
 - Only the Stripe webhook (signature-verified or re-fetched from Stripe) marks orders paid and decrements stock, guarded by `payment_status != 'paid'`. Why: idempotency and no client-side payment trust.
 - `PaymentSuccess` reads order state via the read-only `order-status` function and clears the cart only when paid. Why: guests have no RLS access and the cart must survive cancelled payments.
