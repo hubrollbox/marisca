@@ -115,10 +115,17 @@ export default function Checkout() {
 
     setLoading(true);
     try {
-      // Só enviamos o quê e quanto — o preço é sempre calculado no servidor
+      // O servidor ignora nome/preço enviados e usa os da base de dados.
+      // (São enviados só para compatibilidade com a versão anterior do servidor.)
       const { data, error } = await supabase.functions.invoke("create-payment", {
         body: {
-          items: items.map((i) => ({ id: i.product.id, quantity: i.quantity, state: i.state })),
+          items: items.map((i) => ({
+            id: i.product.id,
+            quantity: i.quantity,
+            state: i.state,
+            name: i.product.name,
+            price: i.product.price,
+          })),
           deliveryAddress: parsedAddress.data,
           deliveryTimeSlot: timeSlot,
           notes: parsedNotes.data.notes,
