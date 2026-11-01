@@ -80,6 +80,10 @@ interface CartContextValue {
   addItem: (product: Product, quantity: number, state: CartStateOption) => void;
   updateQuantity: (productId: string, state: CartStateOption, quantity: number) => void;
   removeItem: (productId: string, state: CartStateOption) => void;
+  /** Define a quantidade exata de uma linha (0 = sai do pedido). */
+  setLineQuantity: (product: Product, state: CartStateOption, quantity: number) => void;
+  /** Passa a linha de um estado para outro (ex.: Cru → Cozido), mantendo a quantidade. */
+  changeLineState: (product: Product, from: CartStateOption, to: CartStateOption) => void;
   clear: () => void;
   /** Aceita os preços atuais (esconde o aviso de preço alterado) */
   acceptCurrentPrices: () => void;
@@ -141,6 +145,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       updateQuantity: (productId, state, quantity) =>
         dispatch({ type: "UPDATE_QUANTITY", payload: { productId, state, quantity } }),
       removeItem: (productId, state) => dispatch({ type: "REMOVE_ITEM", payload: { productId, state } }),
+      setLineQuantity: (product, state, quantity) => {
+        const q = Math.max(0, Math.floor(quantity));
+        const exists = stored.some((i) => i.product.id === product.id && i.state === state);
+        if (q === 0) dispatch({ type: "REMOVE_ITEM", payload: { productId: product.id, state } });
+        else if (exists) dispatch({ type: "UPDATE_QUANTITY", payload: { productId: product.id, state, quantity: q } });
+        else dispatch({ type: "ADD_ITEM", payload: { product, quantity: q, state } });
+      },
+      changeLineState: (product, from, to) => {
+        if (from === to) return;
+        const line = stored.find((i) => i.product.id === product.id && i.state === from);
+        if (!line) return;
+        dispatch({ type: "REMOVE_ITEM", payload: { productId: product.id, state: from } });
+        dispatch({ type: "ADD_ITEM", payload: { product, quantity: line.quantity, state: to } });
+      },
       clear: () => dispatch({ type: "CLEAR" }),
       acceptCurrentPrices,
       totalItems: items.reduce((sum, i) => sum + i.quantity, 0),
