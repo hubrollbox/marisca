@@ -45,7 +45,7 @@ export default function PaymentSuccess() {
       if (o && o.payment_status !== "pending") return false;
       return Date.now() - startedAt.current < MAX_WAIT_MS ? 2500 : false;
     },
-    retry: 2,
+    retry: 1,
   });
 
   const paid = order?.payment_status === "paid";
