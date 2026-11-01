@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isInClosedSeason, isValidState, type ProductState } from "@/lib/pricing";
+import { parseUnit, type ProductUnit } from "@/lib/catalog";
 
 export type { ProductState };
 
@@ -9,7 +10,10 @@ export interface Product {
   name: string;
   slug?: string;
   category?: string;
+  /** Só para a área de administração; nunca mostrar nas páginas públicas. */
   price: number;
+  /** Unidade de venda: "kg" ou "un" */
+  unit?: ProductUnit;
   image_url?: string;
   weight?: string;
   available: boolean;
