@@ -15,8 +15,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { addressSchema, guestEmailSchema, checkoutNotesSchema } from "@/lib/validations";
-import { SALE_BLOCK_LABELS, FREE_DELIVERY_THRESHOLD } from "@/lib/pricing";
-import { STATE_LABELS } from "@/lib/catalog";
+import { SALE_BLOCK_LABELS } from "@/lib/pricing";
+import { STATE_LABELS, PRICE_ON_QUOTE } from "@/lib/catalog";
 import { ArrowLeft, Clock, MapPin, CreditCard, Loader2 } from "lucide-react";
 
 const TIME_SLOTS = ["10:00 - 12:00", "12:00 - 14:00", "14:00 - 16:00", "16:00 - 18:00", "18:00 - 20:00"];
@@ -41,7 +41,7 @@ export default function Checkout() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const {
-    items, totalItems, subtotal, deliveryFee, total, hasBlockingIssues, catalogLoaded,
+    items, hasBlockingIssues, catalogLoaded,
   } = useCart();
   const [loading, setLoading] = useState(false);
   const [problems, setProblems] = useState<Problem[]>([]);
@@ -362,7 +362,7 @@ export default function Checkout() {
             ) : hasBlockingIssues ? (
               "Reveja o carrinho"
             ) : (
-              `Pagar €${total.toFixed(2)}`
+              "Continuar"
             )}
           </Button>
         </form>
