@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Package, Home, Loader2, Clock, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/use-cart";
-import { STATE_LABELS } from "@/components/ui/product-card";
+import { STATE_LABELS } from "@/lib/catalog";
 
 interface OrderSummary {
   id: string;

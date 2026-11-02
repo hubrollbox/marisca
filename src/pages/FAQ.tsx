@@ -20,8 +20,8 @@ const FAQ = () => {
           answer: "Atualmente entregamos no Porto e em Lisboa. Estamos a trabalhar para expandir as nossas zonas de entrega para outras cidades."
         },
         {
-          question: "Qual é o valor mínimo de encomenda?",
-          answer: "O valor mínimo de encomenda é de 25€. Para encomendas superiores a 50€, a entrega é gratuita."
+          question: "Quanto custa a encomenda?",
+          answer: "Os preços do marisco acompanham a lota do dia, por isso trabalhamos sob orçamento: envia-nos o pedido e respondemos com o valor final, já com a entrega incluída."
         },
         {
           question: "Como posso acompanhar a minha encomenda?",

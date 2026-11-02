@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { addressSchema, guestEmailSchema, checkoutNotesSchema } from "@/lib/validations";
 import { SALE_BLOCK_LABELS, FREE_DELIVERY_THRESHOLD } from "@/lib/pricing";
-import { STATE_LABELS } from "@/components/ui/product-card";
+import { STATE_LABELS } from "@/lib/catalog";
 import { ArrowLeft, Clock, MapPin, CreditCard, Loader2 } from "lucide-react";
 
 const TIME_SLOTS = ["10:00 - 12:00", "12:00 - 14:00", "14:00 - 16:00", "16:00 - 18:00", "18:00 - 20:00"];
