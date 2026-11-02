@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAdminProducts, useInvalidateAdmin } from "@/hooks/use-admin-data";
 import type { Product } from "@/hooks/use-products";
-import { AvailabilityBadge } from "@/components/ui/product-card";
+import { AvailabilityBadge } from "@/components/catalog/AvailabilityBadge";
 import { ProductFormDialog } from "./ProductFormDialog";
 
 export function AdminProducts() {

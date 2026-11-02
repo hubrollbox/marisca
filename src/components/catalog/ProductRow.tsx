@@ -37,9 +37,6 @@ export function ProductRow({ product }: { product: Product }) {
           )}
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <AvailabilityBadge product={product} />
-            {product.unit && (
-              <span className="text-xs text-muted-foreground">{product.unit === "kg" ? "Ao kg" : "À unidade"}</span>
-            )}
           </div>
         </div>
       </div>

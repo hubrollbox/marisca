@@ -1,26 +1,15 @@
 import type { Product } from "../hooks/use-products";
 
+/** Dados estruturados do produto. Sem preço: a Marisca vende sob orçamento. */
 export function generateProductSchema(product: Product) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": product.name,
     "description": product.description || `${product.name} fresco da costa portuguesa`,
-    "image": product.image_url || "/placeholder.svg",
+    ...(product.image_url ? { "image": product.image_url } : {}),
     "sku": product.id,
-    "offers": {
-      "@type": "Offer",
-      "price": product.price,
-      "priceCurrency": "EUR",
-      "availability": product.available && (product.stock || 0) > 0
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-      "url": `https://marisca.pt/produtos/${product.slug || product.id}`,
-      "seller": {
-        "@type": "Organization",
-        "name": "Marisca"
-      }
-    },
+    "url": `https://marisca.pt/produtos/${product.id}`,
     "brand": {
       "@type": "Brand",
       "name": "Marisca"

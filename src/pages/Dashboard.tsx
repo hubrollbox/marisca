@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, Package, User, LogOut, Loader2 } from "lucide-react";
 import { AddressManager } from "@/components/AddressManager";
-import { STATE_LABELS } from "@/components/ui/product-card";
+import { STATE_LABELS } from "@/lib/catalog";
 import {
   ORDER_STATUS_CLASSES,
   ORDER_STATUS_ICONS,

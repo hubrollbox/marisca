@@ -50,6 +50,7 @@ export function mapProduct(row: any): Product {
     slug: opt(row.slug),
     category: opt(row.category),
     price: Number(row.price) || 0,
+    unit: parseUnit(row.unit),
     image_url: opt(row.image_url),
     weight: opt(row.weight),
     available: !!row.available,

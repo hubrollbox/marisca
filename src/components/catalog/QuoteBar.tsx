@@ -12,7 +12,7 @@ export function QuoteBar() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-primary-foreground/10 bg-primary p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-elegant">
       <div className="mx-auto max-w-md">
-        <Button variant="cta" size="lg" className="h-12 w-full text-base" onClick={() => navigate("/checkout")}>
+        <Button variant="cta" size="lg" className="h-12 w-full rounded-full text-base" onClick={() => navigate("/checkout")}>
           Pedir orçamento · {count} {count === 1 ? "item" : "itens"}
         </Button>
       </div>

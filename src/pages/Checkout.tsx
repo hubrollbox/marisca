@@ -15,8 +15,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { addressSchema, guestEmailSchema, checkoutNotesSchema } from "@/lib/validations";
-import { SALE_BLOCK_LABELS, FREE_DELIVERY_THRESHOLD } from "@/lib/pricing";
-import { STATE_LABELS } from "@/components/ui/product-card";
+import { SALE_BLOCK_LABELS } from "@/lib/pricing";
+import { STATE_LABELS, PRICE_ON_QUOTE } from "@/lib/catalog";
 import { ArrowLeft, Clock, MapPin, CreditCard, Loader2 } from "lucide-react";
 
 const TIME_SLOTS = ["10:00 - 12:00", "12:00 - 14:00", "14:00 - 16:00", "16:00 - 18:00", "18:00 - 20:00"];
@@ -41,7 +41,7 @@ export default function Checkout() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const {
-    items, totalItems, subtotal, deliveryFee, total, hasBlockingIssues, catalogLoaded,
+    items, hasBlockingIssues, catalogLoaded,
   } = useCart();
   const [loading, setLoading] = useState(false);
   const [problems, setProblems] = useState<Problem[]>([]);
@@ -115,16 +115,13 @@ export default function Checkout() {
 
     setLoading(true);
     try {
-      // O servidor ignora nome/preço enviados e usa os da base de dados.
-      // (São enviados só para compatibilidade com a versão anterior do servidor.)
+      // Só id, quantidade e estado: preços e totais são sempre calculados no servidor.
       const { data, error } = await supabase.functions.invoke("create-payment", {
         body: {
           items: items.map((i) => ({
             id: i.product.id,
             quantity: i.quantity,
             state: i.state,
-            name: i.product.name,
-            price: i.product.price,
           })),
           deliveryAddress: parsedAddress.data,
           deliveryTimeSlot: timeSlot,
@@ -187,24 +184,22 @@ export default function Checkout() {
           <CardContent className="space-y-4">
             {items.map((item) => (
               <div key={`${item.product.id}-${item.state}`} className="flex items-center gap-3">
-                {item.product.image_url ? (
-                  <img src={item.product.image_url} alt={item.product.name} className="w-12 h-12 object-cover rounded-md" />
-                ) : (
-                  <div className="w-12 h-12 rounded-md bg-muted" aria-hidden />
+                {item.product.image_url && (
+                  <img src={item.product.image_url} alt="" className="w-14 h-14 object-cover rounded-md" />
                 )}
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-sm truncate">{item.product.name}</h4>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">{STATE_LABELS[item.state]}</Badge>
                     <span className="text-sm text-muted-foreground">
-                      {item.quantity}x €{item.product.price.toFixed(2)}
+                      {item.quantity}
+                      {item.product.unit ? ` ${item.product.unit}` : "x"}
                     </span>
                   </div>
                   {item.block && (
                     <p className="text-xs font-medium text-destructive">{SALE_BLOCK_LABELS[item.block]}</p>
                   )}
                 </div>
-                <div className="font-semibold text-sm">€{(item.product.price * item.quantity).toFixed(2)}</div>
               </div>
             ))}
 
@@ -220,25 +215,9 @@ export default function Checkout() {
 
             <Separator />
 
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Subtotal ({totalItems} itens)</span>
-                <span>€{subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Taxa de entrega</span>
-                <span>{deliveryFee === 0 ? "GRÁTIS" : `€${deliveryFee.toFixed(2)}`}</span>
-              </div>
-              {deliveryFee > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Entrega grátis a partir de €{FREE_DELIVERY_THRESHOLD.toFixed(2)}
-                </p>
-              )}
-              <Separator />
-              <div className="flex justify-between font-semibold text-lg">
-                <span>Total</span>
-                <span>€{total.toFixed(2)}</span>
-              </div>
+            <div className="flex justify-between text-sm">
+              <span>{items.length} {items.length === 1 ? "item" : "itens"}</span>
+              <span className="font-semibold">{PRICE_ON_QUOTE}</span>
             </div>
           </CardContent>
         </Card>
@@ -381,7 +360,7 @@ export default function Checkout() {
             ) : hasBlockingIssues ? (
               "Reveja o carrinho"
             ) : (
-              `Pagar €${total.toFixed(2)}`
+              "Continuar"
             )}
           </Button>
         </form>
