@@ -282,7 +282,7 @@ const ProductDetail = () => {
 
       <Footer />
 
-      <CartFooter />
+      <QuoteBar />
     </div>
   );
 };
