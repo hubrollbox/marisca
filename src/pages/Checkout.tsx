@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
@@ -14,43 +14,40 @@ import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { addressSchema, guestEmailSchema, checkoutNotesSchema } from "@/lib/validations";
 import { SALE_BLOCK_LABELS } from "@/lib/pricing";
 import { STATE_LABELS, PRICE_ON_QUOTE } from "@/lib/catalog";
-import { ArrowLeft, Clock, MapPin, CreditCard, Loader2 } from "lucide-react";
+import { buildSubmitOrderBody, quoteFormSchema, quoteSuccessMessage } from "@/lib/quote-request";
+import { ArrowLeft, CheckCircle, Clock, MapPin, Loader2 } from "lucide-react";
 
 const TIME_SLOTS = ["10:00 - 12:00", "12:00 - 14:00", "14:00 - 16:00", "16:00 - 18:00", "18:00 - 20:00"];
+const NO_SLOT = "sem-preferencia";
 
-type Problem = { id: string; name: string; reason: string };
-
-/** Lê a mensagem de erro que a função de pagamento devolve. */
-async function readFunctionError(error: unknown): Promise<{ message: string; problems?: Problem[] }> {
+/** Lê a mensagem de erro PT-PT que a função devolve ({ error }). */
+async function readFunctionError(error: unknown): Promise<string> {
   if (error instanceof FunctionsHttpError) {
     try {
       const body = await error.context.json();
-      return { message: body?.error ?? "Erro ao processar pagamento", problems: body?.problems };
+      if (typeof body?.error === "string") return body.error;
     } catch {
       // resposta sem JSON
     }
   }
-  return { message: "Erro ao processar pagamento. Tente novamente em alguns momentos." };
+  return "Não foi possível enviar o pedido. Tente novamente em alguns momentos.";
 }
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const {
-    items, hasBlockingIssues, catalogLoaded,
-  } = useCart();
+  const { items, hasBlockingIssues, catalogLoaded, clear } = useCart();
   const [loading, setLoading] = useState(false);
-  const [problems, setProblems] = useState<Problem[]>([]);
-  const [guestEmail, setGuestEmail] = useState("");
-  const [address, setAddress] = useState({ name: "", street: "", city: "", postalCode: "", phone: "" });
-  const [timeSlot, setTimeSlot] = useState("");
+  const [successRef, setSuccessRef] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    name: "", email: "", phone: "", street: "", city: "", postalCode: "",
+  });
+  const [timeSlot, setTimeSlot] = useState(NO_SLOT);
   const [notes, setNotes] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot: tem de ficar vazio
 
-  // Pré-preencher com a morada favorita do cliente
   const { data: savedAddress } = useQuery({
     queryKey: ["default-address", user?.id],
     enabled: !!user,
@@ -67,96 +64,80 @@ export default function Checkout() {
   });
 
   useEffect(() => {
-    if (!savedAddress) return;
-    setAddress((a) => ({
-      ...a,
-      street: a.street || savedAddress.street,
-      city: a.city || savedAddress.city,
-      postalCode: a.postalCode || savedAddress.postal_code,
+    setForm((f) => ({
+      ...f,
+      email: f.email || user?.email || "",
+      street: f.street || savedAddress?.street || "",
+      city: f.city || savedAddress?.city || "",
+      postalCode: f.postalCode || savedAddress?.postal_code || "",
     }));
-  }, [savedAddress]);
+  }, [savedAddress, user]);
 
-  useEffect(() => {
-    if (searchParams.get("cancelado")) {
-      toast({ title: "Pagamento cancelado", description: "O seu carrinho continua guardado." });
-    }
-  }, [searchParams]);
+  const setField = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  const setField = (field: keyof typeof address) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setAddress((a) => ({ ...a, [field]: e.target.value }));
-
-  const handleSubmitOrder = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProblems([]);
-
-    const parsedAddress = addressSchema.safeParse(address);
-    if (!parsedAddress.success) {
-      toast({ title: "Verifique a morada", description: parsedAddress.error.errors[0]?.message, variant: "destructive" });
-      return;
-    }
-    let validatedGuestEmail: string | undefined;
-    if (!user) {
-      const parsedEmail = guestEmailSchema.safeParse({ email: guestEmail });
-      if (!parsedEmail.success) {
-        toast({ title: "Email inválido", description: parsedEmail.error.errors[0]?.message, variant: "destructive" });
-        return;
-      }
-      validatedGuestEmail = parsedEmail.data.email;
-    }
-    const parsedNotes = checkoutNotesSchema.safeParse({ notes: notes || undefined });
-    if (!parsedNotes.success) {
-      toast({ title: "Observações demasiado longas", variant: "destructive" });
-      return;
-    }
-    if (!timeSlot) {
-      toast({ title: "Horário obrigatório", description: "Selecione um horário de entrega", variant: "destructive" });
+    const parsed = quoteFormSchema.safeParse({
+      ...form,
+      deliveryTimeSlot: timeSlot === NO_SLOT ? undefined : timeSlot,
+      notes: notes || undefined,
+    });
+    if (!parsed.success) {
+      toast({ title: "Verifique os dados", description: parsed.error.errors[0]?.message, variant: "destructive" });
       return;
     }
 
     setLoading(true);
     try {
-      // Só id, quantidade e estado: preços e totais são sempre calculados no servidor.
-      const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: {
-          items: items.map((i) => ({
-            id: i.product.id,
-            quantity: i.quantity,
-            state: i.state,
-          })),
-          deliveryAddress: parsedAddress.data,
-          deliveryTimeSlot: timeSlot,
-          notes: parsedNotes.data.notes,
-          guestEmail: validatedGuestEmail,
-        },
-      });
-
+      const body = buildSubmitOrderBody(
+        parsed.data,
+        items.map((i) => ({ productId: i.product.id, quantity: i.quantity, state: i.state })),
+        website,
+      );
+      const { data, error } = await supabase.functions.invoke("submit-order", { body });
       if (error) {
-        const { message, problems: p } = await readFunctionError(error);
-        if (p?.length) setProblems(p);
-        toast({ title: "Não foi possível continuar", description: message, variant: "destructive" });
-        setLoading(false);
+        toast({ title: "Pedido não enviado", description: await readFunctionError(error), variant: "destructive" });
         return;
       }
-      if (!data?.url) throw new Error("Sem link de pagamento");
-
-      // Mesma janela; o carrinho só é limpo quando o pagamento estiver confirmado
-      window.location.href = data.url;
+      if (!data?.ok || typeof data.orderRef !== "string") {
+        toast({ title: "Pedido não enviado", description: data?.error ?? "Tente novamente.", variant: "destructive" });
+        return;
+      }
+      // Só limpa o carrinho depois da confirmação do servidor
+      setSuccessRef(data.orderRef);
+      clear();
     } catch (err) {
-      console.error("Error submitting order:", err);
-      toast({ title: "Erro no pedido", description: "Tente novamente em alguns momentos.", variant: "destructive" });
+      console.error("Error submitting quote:", err);
+      toast({ title: "Pedido não enviado", description: "Tente novamente em alguns momentos.", variant: "destructive" });
+    } finally {
       setLoading(false);
     }
   };
+
+  if (successRef) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <Card className="max-w-md mx-auto mt-8 text-center">
+          <CardContent className="p-6 space-y-4">
+            <CheckCircle className="w-12 h-12 mx-auto text-primary" />
+            <p className="text-lg font-heading font-semibold" role="status">{quoteSuccessMessage(successRef)}</p>
+            <Button onClick={() => navigate("/")} variant="cta" className="w-full min-h-11">Voltar à loja</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="max-w-md mx-auto py-8 text-center">
-          <h1 className="text-2xl font-heading font-bold mb-4">Carrinho Vazio</h1>
-          <p className="text-muted-foreground mb-6">Adicione produtos ao carrinho para continuar.</p>
-          <Button onClick={() => navigate("/")} variant="cta">
+          <h1 className="text-2xl font-heading font-bold mb-4">Pedido vazio</h1>
+          <p className="text-muted-foreground mb-6">Escolha os produtos para pedir orçamento.</p>
+          <Button onClick={() => navigate("/")} variant="cta" className="min-h-11">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar às Compras
+            Ver produtos
           </Button>
         </div>
       </div>
@@ -166,20 +147,18 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b z-40">
-        <div className="max-w-md mx-auto p-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Voltar">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-xl font-heading font-semibold">Finalizar Encomenda</h1>
-          </div>
+        <div className="max-w-md mx-auto p-4 flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => navigate(-1)} aria-label="Voltar">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-heading font-semibold">Pedir orçamento</h1>
         </div>
       </div>
 
       <div className="max-w-md mx-auto p-4 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Resumo da Encomenda</CardTitle>
+            <CardTitle className="text-lg">O seu pedido</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {items.map((item) => (
@@ -202,19 +181,7 @@ export default function Checkout() {
                 </div>
               </div>
             ))}
-
-            {problems.length > 0 && (
-              <div className="rounded-md border border-destructive/40 p-3 text-sm" role="alert">
-                {problems.map((p) => (
-                  <p key={p.id + p.reason}>
-                    <strong>{p.name}:</strong> {p.reason}
-                  </p>
-                ))}
-              </div>
-            )}
-
             <Separator />
-
             <div className="flex justify-between text-sm">
               <span>{items.length} {items.length === 1 ? "item" : "itens"}</span>
               <span className="font-semibold">{PRICE_ON_QUOTE}</span>
@@ -222,70 +189,53 @@ export default function Checkout() {
           </CardContent>
         </Card>
 
-        <form onSubmit={handleSubmitOrder} className="space-y-6" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          {/* Honeypot anti-spam: invisível para pessoas */}
+          <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+            <label htmlFor="website">Website</label>
+            <input
+              id="website"
+              name="website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+            />
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
-                Endereço de Entrega
+                Contacto e entrega
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome Completo</Label>
-                <Input id="name" autoComplete="name" value={address.name} onChange={setField("name")} required />
+                <Label htmlFor="name">Nome</Label>
+                <Input id="name" autoComplete="name" value={form.name} onChange={setField("name")} required />
               </div>
-
-              {!user && (
-                <div className="space-y-2">
-                  <Label htmlFor="guestEmail">Email</Label>
-                  <Input
-                    id="guestEmail"
-                    type="email"
-                    autoComplete="email"
-                    value={guestEmail}
-                    onChange={(e) => setGuestEmail(e.target.value)}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Sem conta? Não há problema — enviamos a confirmação para este email.
-                  </p>
-                </div>
-              )}
-
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" autoComplete="email" value={form.email} onChange={setField("email")} required />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Telefone</Label>
-                <Input id="phone" type="tel" autoComplete="tel" value={address.phone} onChange={setField("phone")} required />
+                <Input id="phone" type="tel" autoComplete="tel" value={form.phone} onChange={setField("phone")} required />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="street">Morada</Label>
-                <Input
-                  id="street"
-                  autoComplete="street-address"
-                  placeholder="Rua, número, andar"
-                  value={address.street}
-                  onChange={setField("street")}
-                  required
-                />
+                <Label htmlFor="street">Rua</Label>
+                <Input id="street" autoComplete="street-address" placeholder="Rua, número, andar" value={form.street} onChange={setField("street")} required />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="city">Cidade</Label>
-                  <Input id="city" autoComplete="address-level2" value={address.city} onChange={setField("city")} required />
+                  <Label htmlFor="city">Localidade</Label>
+                  <Input id="city" autoComplete="address-level2" value={form.city} onChange={setField("city")} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="postalCode">Código Postal</Label>
-                  <Input
-                    id="postalCode"
-                    autoComplete="postal-code"
-                    inputMode="numeric"
-                    placeholder="0000-000"
-                    value={address.postalCode}
-                    onChange={setField("postalCode")}
-                    required
-                  />
+                  <Label htmlFor="postalCode">Código postal</Label>
+                  <Input id="postalCode" autoComplete="postal-code" inputMode="numeric" placeholder="0000-000" value={form.postalCode} onChange={setField("postalCode")} required />
                 </div>
               </div>
             </CardContent>
@@ -295,19 +245,18 @@ export default function Checkout() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                Horário de Entrega
+                Horário preferido (opcional)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Select value={timeSlot} onValueChange={setTimeSlot}>
-                <SelectTrigger aria-label="Horário de entrega">
-                  <SelectValue placeholder="Selecione o horário" />
+                <SelectTrigger aria-label="Horário preferido" className="min-h-11">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={NO_SLOT}>Sem preferência</SelectItem>
                   {TIME_SLOTS.map((slot) => (
-                    <SelectItem key={slot} value={slot}>
-                      {slot}
-                    </SelectItem>
+                    <SelectItem key={slot} value={slot}>{slot}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -316,13 +265,13 @@ export default function Checkout() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Observações</CardTitle>
+              <CardTitle className="text-lg">Notas (opcional)</CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
                 id="notes"
-                aria-label="Observações"
-                placeholder="Instruções especiais para entrega..."
+                aria-label="Notas"
+                placeholder="Tamanho preferido, instruções de entrega..."
                 rows={3}
                 maxLength={500}
                 value={notes}
@@ -331,36 +280,30 @@ export default function Checkout() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
-                Pagamento
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Vai ser encaminhado para a página segura da Stripe para pagar com cartão. Volta aqui automaticamente.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              Pedido de orçamento, sem obrigação de pagamento. Enviamos o preço, a data e a hora de entrega e as
+              formas de pagamento. O contrato só se forma quando aceitar o orçamento.
+            </p>
+            <p>Produtos perecíveis: não há direito de livre resolução depois da entrega do orçamento aceite.</p>
+          </div>
 
           <Button
             type="submit"
             variant="cta"
-            className="w-full py-3"
+            className="w-full min-h-11"
             size="lg"
             disabled={loading || hasBlockingIssues || !catalogLoaded}
           >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                A abrir pagamento...
+                A enviar...
               </>
             ) : hasBlockingIssues ? (
-              "Reveja o carrinho"
+              "Reveja o pedido"
             ) : (
-              "Continuar"
+              "Enviar pedido de orçamento"
             )}
           </Button>
         </form>
