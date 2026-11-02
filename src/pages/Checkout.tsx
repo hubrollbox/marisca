@@ -184,10 +184,8 @@ export default function Checkout() {
           <CardContent className="space-y-4">
             {items.map((item) => (
               <div key={`${item.product.id}-${item.state}`} className="flex items-center gap-3">
-                {item.product.image_url ? (
-                  <img src={item.product.image_url} alt={item.product.name} className="w-12 h-12 object-cover rounded-md" />
-                ) : (
-                  <div className="w-12 h-12 rounded-md bg-muted" aria-hidden />
+                {item.product.image_url && (
+                  <img src={item.product.image_url} alt="" className="w-14 h-14 object-cover rounded-md" />
                 )}
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-sm truncate">{item.product.name}</h4>
