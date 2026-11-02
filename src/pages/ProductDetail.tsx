@@ -1,34 +1,23 @@
-import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Minus, Plus, ShoppingCart, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { useProduct, type ProductState } from "../hooks/use-products";
-import { useCart } from "../hooks/use-cart";
-import { useToast } from "../hooks/use-toast";
+import { useProduct } from "../hooks/use-products";
 import { Header } from "../components/Header";
 import { Breadcrumbs } from "../components/Breadcrumbs";
-import { CartFooter } from "../components/ui/cart-footer";
+import { QuoteBar } from "../components/catalog/QuoteBar";
 import { Footer } from "../components/Footer";
 import { SEO } from "../components/SEO";
-import { AvailabilityBadge, STATE_LABELS } from "../components/ui/product-card";
-import { saleBlock, SALE_BLOCK_LABELS } from "../lib/pricing";
+import { AvailabilityBadge } from "../components/catalog/AvailabilityBadge";
+import { ProductOrderControls } from "../components/catalog/ProductOrderControls";
+import { PRICE_ON_QUOTE } from "../lib/catalog";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: product, isLoading, isError, refetch } = useProduct(id);
-  const { items, addItem } = useCart();
-  const { toast } = useToast();
-
-  const [selectedState, setSelectedState] = useState<ProductState>("CRU");
-  const [quantity, setQuantity] = useState(1);
-
-  useEffect(() => {
-    if (product && !product.states.includes(selectedState)) setSelectedState(product.states[0]);
-  }, [product, selectedState]);
 
   if (isLoading) {
     return (
@@ -50,29 +39,16 @@ const ProductDetail = () => {
           </p>
           <div className="flex gap-2 justify-center">
             {isError && (
-              <Button variant="outline" onClick={() => refetch()}>
+              <Button variant="outline" className="min-h-11" onClick={() => refetch()}>
                 Tentar novamente
               </Button>
             )}
-            <Button onClick={() => navigate("/produtos")}>Ver todos os produtos</Button>
+            <Button className="min-h-11" onClick={() => navigate("/produtos")}>Ver todos os produtos</Button>
           </div>
         </Card>
       </div>
     );
   }
-
-  const inCart = items.filter((i) => i.product.id === product.id).reduce((s, i) => s + i.quantity, 0);
-  const block = saleBlock(product, inCart + quantity);
-  const canIncrease = product.stock === null || inCart + quantity < product.stock;
-
-  const handleAddToCart = () => {
-    addItem(product, quantity, selectedState);
-    toast({
-      title: "Produto adicionado",
-      description: `${quantity}x ${product.name} (${STATE_LABELS[selectedState]})`,
-    });
-    setQuantity(1);
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,95 +59,46 @@ const ProductDetail = () => {
       />
       <Header />
 
-      <main className="container mx-auto px-4 pb-32">
+      <main className="max-w-2xl mx-auto px-4 pb-32">
         <Breadcrumbs items={[{ label: "Produtos", path: "/produtos" }, { label: product.name }]} />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="aspect-square rounded-lg overflow-hidden bg-muted">
-            {product.image_url ? (
-              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <p className="text-muted-foreground text-lg font-medium">Foto em breve</p>
-              </div>
-            )}
+
+        <div className="space-y-5">
+          <div>
+            <h1 className="text-2xl font-heading font-bold leading-tight">{product.name}</h1>
+            {product.scientific_name && <p className="text-sm text-muted-foreground italic">{product.scientific_name}</p>}
           </div>
 
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-heading font-bold mb-2">{product.name}</h1>
-              {product.scientific_name && <p className="text-muted-foreground italic mb-2">{product.scientific_name}</p>}
-              {product.description && <p className="text-muted-foreground text-lg">{product.description}</p>}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="text-3xl font-bold text-primary">€{product.price.toFixed(2)}</div>
-              {product.weight && <Badge variant="outline">{product.weight}</Badge>}
-              <AvailabilityBadge product={product} />
-            </div>
-
-            {product.in_closed_season && product.closed_season && (
-              <p className="text-sm text-muted-foreground">Período de defeso: {product.closed_season}</p>
-            )}
-
-            <div className="space-y-4">
-              {product.states.length > 1 && (
-                <div className="space-y-2">
-                  <span className="text-sm font-medium">Preparação:</span>
-                  <div className="flex gap-2">
-                    {product.states.map((state) => (
-                      <Button
-                        key={state}
-                        variant={selectedState === state ? "default" : "outline"}
-                        onClick={() => setSelectedState(state)}
-                        className="flex-1"
-                        aria-pressed={selectedState === state}
-                      >
-                        {STATE_LABELS[state]}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <span className="text-sm font-medium">Quantidade:</span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                    aria-label="Diminuir quantidade"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <div className="w-16 text-center font-medium">{quantity}</div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setQuantity(quantity + 1)}
-                    disabled={!canIncrease}
-                    aria-label="Aumentar quantidade"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                {product.stock !== null && product.stock > 0 && product.stock <= 5 && (
-                  <p className="text-xs text-muted-foreground">Restam {product.stock} unidades</p>
-                )}
-              </div>
-
-              <Button onClick={handleAddToCart} size="lg" variant="cta" className="w-full" disabled={!!block}>
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                {block ? SALE_BLOCK_LABELS[block] : "Adicionar ao Carrinho"}
-              </Button>
-            </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <AvailabilityBadge product={product} />
+            {product.unit && <Badge variant="outline">{product.unit === "kg" ? "Ao kg" : "À unidade"}</Badge>}
+            {product.weight && <Badge variant="outline">{product.weight}</Badge>}
           </div>
+
+          <p className="text-sm font-semibold text-foreground">{PRICE_ON_QUOTE}</p>
+
+          {product.in_closed_season && product.closed_season && (
+            <p className="text-sm text-muted-foreground">Período de defeso: {product.closed_season}</p>
+          )}
+
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="mb-2 text-sm font-medium">Adicionar ao pedido</p>
+            <ProductOrderControls product={product} />
+          </div>
+
+          {product.description && <p className="text-muted-foreground">{product.description}</p>}
+
+          {product.image_url && (
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="w-full max-w-sm aspect-[4/3] rounded-lg object-cover"
+              loading="lazy"
+            />
+          )}
         </div>
 
-
         {/* Additional Info Tabs */}
-        <div className="mt-12">
+        <div className="mt-10">
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="flex w-full overflow-x-auto justify-start">
               <TabsTrigger value="details">Detalhes</TabsTrigger>
