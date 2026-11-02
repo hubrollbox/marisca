@@ -1,24 +1,17 @@
 import { useState } from "react";
-import { CartFooter } from "../components/ui/cart-footer";
-import { ProductCard } from "../components/ui/product-card";
-import { useProducts } from "../hooks/use-products";
-import { Loader2 } from "lucide-react";
+import { QuoteBar } from "../components/catalog/QuoteBar";
+import { CatalogList } from "../components/catalog/CatalogList";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { SEO } from "../components/SEO";
 import { Testimonials } from "../components/Testimonials";
 import { generateWebsiteSchema } from "../utils/schema-markup";
-import { Button } from "../components/ui/button";
 
 export default function Index() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: products, isLoading, isError, refetch } = useProducts();
-
-  const filteredProducts =
-    products?.filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase())) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-sand">
+    <div className="min-h-screen bg-background">
       <SEO
         title="Marisca - Da Maré para a Sua Mesa"
         description="Marisco fresco da lota para a sua mesa em poucas horas. Frescura, autenticidade e qualidade diretamente do mar."
@@ -28,7 +21,7 @@ export default function Index() {
 
       <Header showSearch searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 
-      <section className="relative h-44 sm:h-56 md:h-64 overflow-hidden">
+      <section className="relative h-36 sm:h-48 overflow-hidden">
         <img
           src="/hero-home.jpg"
           alt="Barco de pesca e armadilhas na praia, costa portuguesa"
@@ -44,41 +37,16 @@ export default function Index() {
         </div>
       </section>
 
-      <main className="max-w-md mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-heading font-semibold text-foreground">Produtos Disponíveis</h2>
-          <span className="text-sm text-muted-foreground">{filteredProducts.length} produtos</span>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 pb-24">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8" role="status" aria-label="A carregar produtos">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : isError ? (
-            <div className="text-center py-8 space-y-3">
-              <p className="text-muted-foreground">Não foi possível carregar os produtos.</p>
-              <Button variant="outline" onClick={() => refetch()}>
-                Tentar novamente
-              </Button>
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                {searchTerm ? "Nenhum produto encontrado" : "Nenhum produto disponível"}
-              </p>
-            </div>
-          ) : (
-            filteredProducts.map((product) => <ProductCard key={product.id} product={product} />)
-          )}
-        </div>
+      <main className="max-w-md mx-auto px-4 py-6 pb-28">
+        <h2 className="mb-4 text-lg font-heading font-semibold text-foreground">Disponível hoje</h2>
+        <CatalogList searchTerm={searchTerm} />
       </main>
 
       <Testimonials />
 
-      <CartFooter />
-
       <Footer />
+
+      <QuoteBar />
     </div>
   );
 }
