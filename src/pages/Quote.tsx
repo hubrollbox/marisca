@@ -230,7 +230,7 @@ export default function Quote() {
       {confirmation && (
         <div className="flex items-start gap-3 rounded-lg border border-success bg-success/10 p-4" role="status">
           <CheckCircle className="h-5 w-5 text-success shrink-0 mt-0.5" aria-hidden="true" />
-          <p className="font-medium">{confirmation}</p>
+          <p className="font-medium text-foreground">{confirmation}</p>
         </div>
       )}
 

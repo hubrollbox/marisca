@@ -28,6 +28,7 @@ const Returns = lazy(() => import("./pages/Returns"));
 const Partnerships = lazy(() => import("./pages/Partnerships"));
 const HowItWorks = lazy(() => import("./pages/HowItWorks"));
 const ComplaintsBook = lazy(() => import("./pages/ComplaintsBook"));
+const Quote = lazy(() => import("./pages/Quote"));
 
 // Loading component
 const PageLoader = () => (
@@ -82,6 +83,7 @@ const App = () => {
                       <Route path="/parcerias" element={<Partnerships />} />
                       <Route path="/como-funciona" element={<HowItWorks />} />
                       <Route path="/livro-reclamacoes" element={<ComplaintsBook />} />
+                      <Route path="/orcamento/:token" element={<Quote />} />
                       <Route path="/politica-privacidade" element={<PrivacyPolicy />} />
                       <Route path="/termos-condicoes" element={<TermsConditions />} />
                       <Route path="/politica-cookies" element={<CookiePolicy />} />
