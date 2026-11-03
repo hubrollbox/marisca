@@ -15,7 +15,6 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const Admin = lazy(() => import("./pages/Admin"));
-const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsConditions = lazy(() => import("./pages/TermsConditions"));
 const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
@@ -73,7 +72,6 @@ const App = () => {
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/admin" element={<Admin />} />
-                      <Route path="/payment-success" element={<PaymentSuccess />} />
                       <Route path="/checkout" element={<Checkout />} />
                       <Route path="/produtos" element={<Products />} />
                       <Route path="/produtos/:id" element={<ProductDetail />} />

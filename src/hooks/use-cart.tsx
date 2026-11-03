@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from "react";
 import { useProducts, type Product, type ProductState } from "@/hooks/use-products";
-import { calcTotals, isValidState, saleBlock, type SaleBlock } from "@/lib/pricing";
+import { isValidState, saleBlock, type SaleBlock } from "@/lib/pricing";
 
 export type CartStateOption = ProductState;
 
@@ -88,9 +88,6 @@ interface CartContextValue {
   /** Aceita os preços atuais (esconde o aviso de preço alterado) */
   acceptCurrentPrices: () => void;
   totalItems: number;
-  subtotal: number;
-  deliveryFee: number;
-  total: number;
   hasPriceChanges: boolean;
   hasBlockingIssues: boolean;
   catalogLoaded: boolean;
@@ -135,9 +132,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       };
     });
 
-    const { subtotal, deliveryFee, total } = calcTotals(
-      items.filter((i) => !i.block).map((i) => ({ price: i.product.price, quantity: i.quantity })),
-    );
 
     return {
       items,
@@ -162,9 +156,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       clear: () => dispatch({ type: "CLEAR" }),
       acceptCurrentPrices,
       totalItems: items.reduce((sum, i) => sum + i.quantity, 0),
-      subtotal,
-      deliveryFee,
-      total,
       hasPriceChanges: items.some((i) => i.previousPrice !== null),
       hasBlockingIssues: items.some((i) => i.block !== null),
       catalogLoaded: isSuccess,
