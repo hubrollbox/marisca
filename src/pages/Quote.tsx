@@ -283,7 +283,7 @@ export default function Quote() {
             <div>
               <p className="font-medium">Entrega</p>
               <p className="text-sm">
-                {deliveryDate && <span className="capitalize-first">{deliveryDate}</span>}
+                {deliveryDate && <span className="inline-block first-letter:uppercase">{deliveryDate}</span>}
                 {deliveryDate && quote.deliverySlot && " · "}
                 {quote.deliverySlot}
               </p>
