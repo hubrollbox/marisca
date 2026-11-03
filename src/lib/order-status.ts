@@ -49,3 +49,23 @@ export function isOrderStatus(value: unknown): value is OrderStatus {
 export function countsAsRevenue(order: { payment_status?: string | null; status?: string | null }): boolean {
   return order.payment_status === "paid" && order.status !== "cancelado";
 }
+
+/** Rótulos PT-PT de todos os valores de orders.status (fluxo de orçamento). */
+export const STATUS_LABELS_PT: Record<string, string> = {
+  pendente: "Pedido recebido",
+  orcamento_enviado: "Orçamento enviado",
+  aceite: "Aceite",
+  pesado: "Pesado",
+  preparado: "Preparado",
+  em_entrega: "Em entrega",
+  entregue: "Entregue",
+  cancelado: "Cancelado",
+  expirado: "Expirado",
+  confirmado: "Confirmado (legado)",
+};
+
+/** Estado desconhecido mostra-se tal como vem — nunca como "Pendente". */
+export function orderStatusLabel(status: string | null | undefined): string {
+  if (!status) return "";
+  return Object.prototype.hasOwnProperty.call(STATUS_LABELS_PT, status) ? STATUS_LABELS_PT[status] : status;
+}

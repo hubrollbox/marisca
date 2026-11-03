@@ -7,6 +7,7 @@
 - Only the Stripe webhook (signature-verified or re-fetched from Stripe) marks orders paid and decrements stock, guarded by `payment_status != 'paid'`. Why: idempotency and no client-side payment trust.
 - Server data is fetched with React Query hooks (`use-products`, `use-admin-data`); the cart stores snapshots but always prices/blocks against the live catalog. Why: one cache, no stale prices.
 - Public pages (catalog, product page, order page, modals) never show prices or "€"; they show `PRICE_ON_QUOTE` from `src/lib/catalog.ts` — a test scans those files. The public catalog is a category-grouped list in `src/components/catalog/` whose quantity controls write straight to the cart. Why: Marisca sells on quote (price set after weighing).
+- The only page that shows prices to customers is the token-link quote page `/orcamento/:token`: it displays values returned by `get-quote` as-is and only sends `{token, paymentMethod}` to `accept-quote` (helpers in `src/lib/quote-view.ts`); it never charges, uses Stripe, or shows address/email/phone. Why: the quote is server-computed and the link is the customer's only credential.
 - Order status labels/colors/flow live in `src/lib/order-status.ts`; reports in `src/lib/admin-reports.ts`; admin sections are separate components in `src/components/admin/`.
 - Colors only via semantic tokens in `src/index.css`; the `cta` Button variant is the only use of the accent color. Why: brand rule (accent reserved for CTAs) and AA contrast.
 - Tests: `npm test` (vitest), next to the code as `*.test.ts`.
