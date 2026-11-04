@@ -3,39 +3,38 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Mail, Phone, ChevronRight, Download } from "lucide-react";
+import { Loader2, Mail, Phone, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAdminOrders, useInvalidateAdmin, type AdminOrder } from "@/hooks/use-admin-data";
-import {
-  NEXT_ORDER_STATUS,
-  ORDER_STATUSES,
-  ORDER_STATUS_CLASSES,
-  ORDER_STATUS_LABELS,
-  isOrderStatus,
-  type OrderStatus,
-} from "@/lib/order-status";
+import { ORDER_STATUSES, ORDER_STATUS_LABELS, orderStatusClass, orderStatusLabel } from "@/lib/order-status";
 import { downloadCsv, ordersToCsv } from "@/lib/admin-reports";
+import { orderRef } from "@/lib/admin-quote";
+import { OrderWorkflow } from "./OrderWorkflow";
 
-const PAYMENT_LABELS: Record<string, string> = { paid: "Pago", pending: "Por pagar", failed: "Falhou" };
+const PAYMENT_METHOD_LABELS: Record<string, string> = { online: "Online", entrega: "Na entrega" };
+const PAYMENT_STATUS_LABELS: Record<string, string> = { paid: "Pago", pending: "Por pagar", failed: "Falhou" };
+
+const eur = (n: number) => `€${n.toFixed(2).replace(".", ",")}`;
 
 export function AdminOrders() {
   const { data: orders = [], isLoading, isError, refetch } = useAdminOrders(true);
   const invalidate = useInvalidateAdmin();
-  const [filter, setFilter] = useState<OrderStatus | "all">("all");
-  const [onlyPaid, setOnlyPaid] = useState(true);
+  const [filter, setFilter] = useState<string>("all");
+  const [onlyPaid, setOnlyPaid] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
 
   const visible = orders.filter(
     (o) => (filter === "all" || o.status === filter) && (!onlyPaid || o.payment_status === "paid"),
   );
 
-  const updateStatus = async (order: AdminOrder, status: OrderStatus) => {
-    const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
+  const updateStatus = async (order: AdminOrder, status: string) => {
+    const { error } = await supabase.from("orders").update({ status } as never).eq("id", order.id);
     if (error) {
-      toast({ title: "Erro ao atualizar estado", description: "Tente novamente.", variant: "destructive" });
+      toast({ title: "Erro ao atualizar estado", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: `Encomenda #${order.id.slice(0, 8).toUpperCase()}: ${ORDER_STATUS_LABELS[status]}` });
+    toast({ title: `Pedido #${orderRef(order.id)}: ${orderStatusLabel(status)}` });
     invalidate.orders();
   };
 
@@ -43,11 +42,11 @@ export function AdminOrders() {
     <Card>
       <CardHeader className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <CardTitle>Encomendas</CardTitle>
+          <CardTitle>Pedidos</CardTitle>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => downloadCsv(`encomendas-${new Date().toISOString().slice(0, 10)}.csv`, ordersToCsv(visible))}
+            onClick={() => downloadCsv(`pedidos-${new Date().toISOString().slice(0, 10)}.csv`, ordersToCsv(visible))}
             disabled={visible.length === 0}
           >
             <Download className="h-4 w-4" />
@@ -55,8 +54,8 @@ export function AdminOrders() {
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Select value={filter} onValueChange={(v) => setFilter(v as OrderStatus | "all")}>
-            <SelectTrigger className="w-44" aria-label="Filtrar por estado">
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-48" aria-label="Filtrar por estado">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -80,63 +79,69 @@ export function AdminOrders() {
           </div>
         ) : isError ? (
           <div className="text-center py-8 space-y-3">
-            <p className="text-muted-foreground">Não foi possível carregar as encomendas.</p>
+            <p className="text-muted-foreground">Não foi possível carregar os pedidos.</p>
             <Button variant="outline" onClick={() => refetch()}>Tentar novamente</Button>
           </div>
         ) : visible.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">Sem encomendas para mostrar.</p>
+          <p className="text-center text-muted-foreground py-8">Sem pedidos para mostrar.</p>
         ) : (
           <div className="space-y-4">
             {visible.map((order) => {
-              const status = isOrderStatus(order.status) ? order.status : "pendente";
-              const next = NEXT_ORDER_STATUS[status];
               const addr = order.delivery_address;
+              const name = order.customer_name ?? addr?.name ?? "—";
+              const phone = order.customer_phone ?? addr?.phone ?? "";
               const email = order.guest_email;
+              const total = order.final_total ?? (order.quote_sent_at ? order.total_amount : null);
+              const isOpen = open === order.id;
               return (
                 <div key={order.id} className="border rounded-lg p-4 space-y-3">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-semibold">#{order.id.slice(0, 8).toUpperCase()}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(order.created_at).toLocaleString("pt-PT")}
-                        {order.delivery_time_slot && ` · Entrega ${order.delivery_time_slot}`}
+                      <h3 className="font-semibold">#{orderRef(order.id)}</h3>
+                      <p className="text-sm text-muted-foreground">{new Date(order.created_at).toLocaleString("pt-PT")}</p>
+                      <p className="text-sm">
+                        {name}
+                        {phone && ` · ${phone}`}
+                        {email && ` · ${email}`}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{PAYMENT_LABELS[order.payment_status ?? ""] ?? "—"}</Badge>
-                      <Badge className={ORDER_STATUS_CLASSES[status]}>{ORDER_STATUS_LABELS[status]}</Badge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">
+                        {PAYMENT_METHOD_LABELS[order.payment_method ?? ""] ?? "Pagamento por definir"}
+                        {order.payment_status && ` · ${PAYMENT_STATUS_LABELS[order.payment_status] ?? order.payment_status}`}
+                      </Badge>
+                      <Badge className={orderStatusClass(order.status)}>{orderStatusLabel(order.status)}</Badge>
                     </div>
                   </div>
 
                   <div className="text-sm space-y-1">
-                    {order.order_items.map((item, i) => (
-                      <p key={i}>
-                        {item.quantity}x {item.products?.name ?? "Produto"}{" "}
-                        <span className="text-muted-foreground">({item.state === "CRU" ? "Cru" : "Cozido"})</span>
+                    {order.order_items.map((item) => (
+                      <p key={item.id}>
+                        {item.quantity}× {item.product_name ?? "Produto"}{" "}
+                        <span className="text-muted-foreground">({item.state === "COZIDO" ? "Cozido" : "Cru"})</span>
                       </p>
                     ))}
-                    <p className="font-semibold">Total €{Number(order.total_amount).toFixed(2)}</p>
+                    {total != null && <p className="font-semibold">Total {eur(Number(total))}</p>}
                   </div>
 
                   {addr && (
                     <div className="text-sm text-muted-foreground">
                       <p>
-                        {addr.name} · {addr.street}, {addr.postalCode} {addr.city}
+                        {addr.street}, {addr.postalCode} {addr.city}
+                        {order.delivery_time_slot && ` · ${order.delivery_time_slot}`}
                       </p>
                       {order.notes && <p className="italic">“{order.notes}”</p>}
                     </div>
                   )}
 
                   <div className="flex flex-wrap items-center gap-2">
-                    {next && order.payment_status === "paid" && (
-                      <Button size="sm" onClick={() => updateStatus(order, next)}>
-                        {ORDER_STATUS_LABELS[next]}
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Select value={status} onValueChange={(v) => updateStatus(order, v as OrderStatus)}>
-                      <SelectTrigger className="w-40 h-9" aria-label="Mudar estado">
-                        <SelectValue />
+                    <Button size="sm" className="min-h-11" onClick={() => setOpen(isOpen ? null : order.id)} aria-expanded={isOpen}>
+                      {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      {isOpen ? "Fechar" : "Abrir pedido"}
+                    </Button>
+                    <Select value={order.status} onValueChange={(v) => updateStatus(order, v)}>
+                      <SelectTrigger className="w-48 h-11" aria-label="Mudar estado">
+                        <SelectValue>{orderStatusLabel(order.status)}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {ORDER_STATUSES.map((s) => (
@@ -146,27 +151,25 @@ export function AdminOrders() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {addr?.phone && (
-                      <Button size="sm" variant="outline" asChild>
-                        <a href={`tel:${addr.phone.replace(/\s/g, "")}`}>
+                    {phone && (
+                      <Button size="sm" variant="outline" className="min-h-11" asChild>
+                        <a href={`tel:${phone.replace(/\s/g, "")}`}>
                           <Phone className="h-4 w-4" />
                           Ligar
                         </a>
                       </Button>
                     )}
                     {email && (
-                      <Button size="sm" variant="outline" asChild>
-                        <a
-                          href={`mailto:${email}?subject=${encodeURIComponent(
-                            `Marisca · Encomenda #${order.id.slice(0, 8).toUpperCase()}`,
-                          )}`}
-                        >
+                      <Button size="sm" variant="outline" className="min-h-11" asChild>
+                        <a href={`mailto:${email}?subject=${encodeURIComponent(`Marisca · Pedido #${orderRef(order.id)}`)}`}>
                           <Mail className="h-4 w-4" />
                           Email
                         </a>
                       </Button>
                     )}
                   </div>
+
+                  {isOpen && <OrderWorkflow order={order} onChanged={invalidate.orders} />}
                 </div>
               );
             })}

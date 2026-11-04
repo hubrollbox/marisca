@@ -3,15 +3,18 @@ import { NEXT_ORDER_STATUS, countsAsRevenue } from "./order-status";
 import { dailySales, ordersToCsv, topProducts } from "./admin-reports";
 
 describe("fluxo da encomenda", () => {
-  it("segue pendente → confirmado → preparado → em entrega → entregue", () => {
-    expect(NEXT_ORDER_STATUS.pendente).toBe("confirmado");
-    expect(NEXT_ORDER_STATUS.confirmado).toBe("preparado");
+  it("segue pendente → orçamento enviado → aceite → pesado → preparado → em entrega → entregue", () => {
+    expect(NEXT_ORDER_STATUS.pendente).toBe("orcamento_enviado");
+    expect(NEXT_ORDER_STATUS.orcamento_enviado).toBe("aceite");
+    expect(NEXT_ORDER_STATUS.aceite).toBe("pesado");
+    expect(NEXT_ORDER_STATUS.pesado).toBe("preparado");
     expect(NEXT_ORDER_STATUS.preparado).toBe("em_entrega");
     expect(NEXT_ORDER_STATUS.em_entrega).toBe("entregue");
   });
   it("entregue e cancelado são finais", () => {
     expect(NEXT_ORDER_STATUS.entregue).toBeNull();
     expect(NEXT_ORDER_STATUS.cancelado).toBeNull();
+    expect(NEXT_ORDER_STATUS.expirado).toBeNull();
   });
 });
 

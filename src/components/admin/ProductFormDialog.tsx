@@ -19,6 +19,7 @@ const EMPTY = {
   category: "",
   description: "",
   price: "",
+  unit: "kg" as "kg" | "un",
   weight: "",
   stock: "",
   prep_time: "",
@@ -41,6 +42,7 @@ function toForm(p: Product): FormState {
     category: p.category ?? "",
     description: p.description ?? "",
     price: String(p.price),
+    unit: p.unit === "un" ? "un" : "kg",
     weight: p.weight ?? "",
     stock: p.stock === null ? "" : String(p.stock),
     prep_time: p.prep_time ?? "",
@@ -125,6 +127,7 @@ export function ProductFormDialog({ open, onOpenChange, product, categories, onS
       prep_time: parsed.data.prep_time ?? null,
       stock: form.stock === "" ? null : parsed.data.stock ?? 0,
       states: form.states,
+      unit: form.unit,
       image_url: form.image_url.trim() || null,
       available: form.available,
     };
@@ -185,7 +188,7 @@ export function ProductFormDialog({ open, onOpenChange, product, categories, onS
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label htmlFor="p-price">Preço (EUR)</Label>
+              <Label htmlFor="p-price">Preço de referência (interno)</Label>
               <Input id="p-price" inputMode="decimal" value={form.price} onChange={(e) => set("price", e.target.value)} />
             </div>
             <div className="space-y-1">
@@ -216,6 +219,24 @@ export function ProductFormDialog({ open, onOpenChange, product, categories, onS
                 <option key={c} value={c} />
               ))}
             </datalist>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-sm font-medium">Unidade de venda</span>
+            <div className="flex gap-2">
+              {(["kg", "un"] as const).map((u) => (
+                <Button
+                  key={u}
+                  type="button"
+                  variant={form.unit === u ? "default" : "outline"}
+                  onClick={() => set("unit", u)}
+                  aria-pressed={form.unit === u}
+                  className="flex-1"
+                >
+                  {u === "kg" ? "Ao quilo (kg)" : "À unidade (un)"}
+                </Button>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-1">

@@ -7,14 +7,14 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, Package, User, LogOut, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, Package, User, LogOut, Loader2 } from "lucide-react";
 import { AddressManager } from "@/components/AddressManager";
 import { STATE_LABELS } from "@/lib/catalog";
 import {
-  ORDER_STATUS_CLASSES,
   ORDER_STATUS_ICONS,
-  ORDER_STATUS_LABELS,
   isOrderStatus,
+  orderStatusClass,
+  orderStatusLabel,
 } from "@/lib/order-status";
 
 interface Order {
@@ -141,8 +141,8 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {orders.map((order) => {
-                  const status = isOrderStatus(order.status) ? order.status : "pendente";
-                  const StatusIcon = ORDER_STATUS_ICONS[status];
+                  const known = isOrderStatus(order.status) ? order.status : null;
+                  const StatusIcon = known ? ORDER_STATUS_ICONS[known] : Clock;
                   const totalItems = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
 
                   return (
@@ -156,11 +156,9 @@ export default function Dashboard() {
                             {new Date(order.created_at).toLocaleDateString('pt-PT')}
                           </p>
                         </div>
-                        <Badge className={ORDER_STATUS_CLASSES[status]}>
+                        <Badge className={orderStatusClass(order.status)}>
                           <StatusIcon className="w-3 h-3 mr-1" />
-                          {order.payment_status === "pending" && status === "pendente"
-                            ? "A aguardar pagamento"
-                            : ORDER_STATUS_LABELS[status]}
+                          {orderStatusLabel(order.status)}
                         </Badge>
                       </div>
 
