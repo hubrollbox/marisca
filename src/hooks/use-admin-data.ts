@@ -2,19 +2,43 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { mapProduct, productsQueryKey, type Product } from "@/hooks/use-products";
 
+export interface AdminOrderItem {
+  id: string;
+  product_name: string | null;
+  unit: string | null;
+  state: string;
+  quantity: number;
+  estimated_qty: number | null;
+  unit_price: number | null;
+  final_qty: number | null;
+  line_total: number | null;
+  customer_note: string | null;
+}
+
 export interface AdminOrder {
   id: string;
   status: string;
-  payment_status: string | null;
-  total_amount: number;
-  delivery_fee: number;
-  delivery_time_slot: string | null;
-  delivery_address: { name?: string; street?: string; city?: string; postalCode?: string; phone?: string } | null;
-  notes: string | null;
   created_at: string;
-  guest_email: string | null;
   user_id: string | null;
-  order_items: Array<{ quantity: number; unit_price: number; state: string; products: { name: string } | null }>;
+  customer_name: string | null;
+  customer_phone: string | null;
+  guest_email: string | null;
+  delivery_address: { name?: string; street?: string; city?: string; postalCode?: string; phone?: string } | null;
+  delivery_time_slot: string | null;
+  notes: string | null;
+  quote_token: string | null;
+  quote_sent_at: string | null;
+  quote_valid_until: string | null;
+  accepted_at: string | null;
+  delivery_date: string | null;
+  payment_options: string[] | null;
+  payment_method: string | null;
+  payment_status: string | null;
+  weight_tolerance_pct: number | null;
+  delivery_fee: number | null;
+  final_total: number | null;
+  total_amount: number;
+  order_items: AdminOrderItem[];
 }
 
 export interface Complaint {
@@ -67,7 +91,9 @@ export function useAdminOrders(enabled: boolean) {
     queryFn: async (): Promise<AdminOrder[]> => {
       const { data, error } = await supabase
         .from("orders")
-        .select("*, order_items (quantity, unit_price, state, products (name))")
+        .select(
+          "id, status, created_at, user_id, customer_name, customer_phone, guest_email, delivery_address, delivery_time_slot, notes, quote_token, quote_sent_at, quote_valid_until, accepted_at, delivery_date, payment_options, payment_method, payment_status, weight_tolerance_pct, delivery_fee, final_total, total_amount, order_items (id, product_name, unit, state, quantity, estimated_qty, unit_price, final_qty, line_total, customer_note)",
+        )
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
