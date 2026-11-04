@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, Package, User, LogOut, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, Package, User, LogOut, Loader2 } from "lucide-react";
 import { AddressManager } from "@/components/AddressManager";
 import { STATE_LABELS } from "@/lib/catalog";
 import {
