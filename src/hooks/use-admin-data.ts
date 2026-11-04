@@ -96,7 +96,7 @@ export function usePartnerships(enabled: boolean) {
       // A tabela de parcerias ainda não consta dos tipos gerados
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
-        .from("partnerships")
+        .from("partnership_requests")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
