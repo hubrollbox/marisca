@@ -21,6 +21,8 @@ export function ProductRow({ product }: { product: Product }) {
           <img
             src={product.image_url}
             alt=""
+            width={56}
+            height={56}
             className="h-14 w-14 shrink-0 rounded-md object-cover"
             loading="lazy"
           />
