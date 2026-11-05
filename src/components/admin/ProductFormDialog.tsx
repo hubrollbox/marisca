@@ -1,4 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  PRODUCT_IMAGES_BUCKET,
+  buildImagePath,
+  pathFromPublicUrl,
+  storageErrorPt,
+  validateImage,
+} from "@/lib/product-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,10 +85,57 @@ interface Props {
 export function ProductFormDialog({ open, onOpenChange, product, categories, onSaved }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (open) setForm(product ? toForm(product) : EMPTY);
+    if (open) {
+      setForm(product ? toForm(product) : EMPTY);
+      setImageError(null);
+    }
   }, [open, product]);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const invalid = validateImage(file);
+    if (invalid) {
+      setImageError(invalid);
+      return;
+    }
+    setImageError(null);
+    setUploading(true);
+    try {
+      const path = buildImagePath(product?.slug || form.name, file.type);
+      const bucket = supabase.storage.from(PRODUCT_IMAGES_BUCKET);
+      const { error } = await bucket.upload(path, file, { upsert: false, contentType: file.type });
+      if (error) {
+        setImageError(storageErrorPt(error.message));
+        return;
+      }
+      const { data } = bucket.getPublicUrl(path);
+      set("image_url", data.publicUrl);
+    } catch (err) {
+      setImageError(storageErrorPt(err instanceof Error ? err.message : undefined));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemove = () => {
+    const old = pathFromPublicUrl(form.image_url);
+    set("image_url", "");
+    setImageError(null);
+    if (old) {
+      supabase.storage
+        .from(PRODUCT_IMAGES_BUCKET)
+        .remove([old])
+        .then(({ error }) => error && console.warn("Remoção da foto antiga falhou:", error.message))
+        .catch(() => {});
+    }
+  };
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -267,6 +321,32 @@ export function ProductFormDialog({ open, onOpenChange, product, categories, onS
             <Textarea id="p-desc" rows={3} value={form.description} onChange={(e) => set("description", e.target.value)} />
           </div>
 
+          <div className="space-y-2">
+            <span className="text-sm font-medium">Foto do produto</span>
+            <div className="flex items-center gap-3">
+              {form.image_url && (
+                <img src={form.image_url} alt="" width={64} height={64} className="h-16 w-16 rounded-md object-cover" />
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/webp,image/jpeg,image/png"
+                className="hidden"
+                onChange={handleFile}
+              />
+              <Button type="button" variant="outline" className="min-h-11" disabled={uploading} onClick={() => fileRef.current?.click()}>
+                {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {uploading ? "A carregar…" : "Carregar foto"}
+              </Button>
+              {form.image_url && (
+                <Button type="button" variant="ghost" className="min-h-11" disabled={uploading} onClick={handleRemove}>
+                  Remover foto
+                </Button>
+              )}
+            </div>
+            {imageError && <p role="alert" className="text-sm text-destructive">{imageError}</p>}
+          </div>
+
           <div className="space-y-1">
             <Label htmlFor="p-image">Foto (link)</Label>
             <Input id="p-image" placeholder="https://..." value={form.image_url} onChange={(e) => set("image_url", e.target.value)} />
@@ -326,7 +406,7 @@ export function ProductFormDialog({ open, onOpenChange, product, categories, onS
             </div>
           </fieldset>
 
-          <Button onClick={handleSave} disabled={saving} className="w-full" size="lg">
+          <Button onClick={handleSave} disabled={saving || uploading} className="w-full" size="lg">
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             {product ? "Guardar alterações" : "Criar produto"}
           </Button>

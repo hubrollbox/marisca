@@ -91,6 +91,8 @@ const ProductDetail = () => {
             <img
               src={product.image_url}
               alt={product.name}
+              width={384}
+              height={288}
               className="w-full max-w-sm aspect-[4/3] rounded-lg object-cover"
               loading="lazy"
             />
