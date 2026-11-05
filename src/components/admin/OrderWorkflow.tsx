@@ -73,7 +73,7 @@ function QuoteForm({ order, onChanged }: Props) {
       paymentOptions: options,
       message,
     });
-    if (!built.ok) {
+    if (built.ok === false) {
       toast({ title: built.error, variant: "destructive" });
       return;
     }
